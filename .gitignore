@@ -1,0 +1,57 @@
+# === Java / Spring Boot ===
+backend/target/
+backend/.mvn/
+backend/maven/
+backend/maven.zip
+backend/mvnw
+backend/mvnw.cmd
+*.class
+*.jar
+*.war
+*.log
+*_output.txt
+*_stderr.txt
+*_stdout.txt
+
+# === Node.js / Vue ===
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+*.local
+
+# === Environment & Secrets ===
+.env
+.env.local
+.env.*.local
+application-local.properties
+application-secrets.properties
+
+# === IDE ===
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+*~
+
+# === Database ===
+*.mv.db
+*.trace.db
+data/
+
+# === OS ===
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# === Logs ===
+logs/
+*.log
+
+# === Pytest / Python (if any) ===
+__pycache__/
+*.pyc
+.venv/
+
+# === Docker ===
+docker-compose.override.yml

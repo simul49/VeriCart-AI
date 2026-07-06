@@ -1,0 +1,44 @@
+# Test profile — uses H2 in-memory database, no real external services
+spring:
+  datasource:
+    url: jdbc:h2:mem:vericart_test;DB_CLOSE_DELAY=-1;MODE=MySQL
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
+      continue-on-error: true
+
+  h2:
+    console:
+      enabled: false
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.vericart.entity
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+# JWT — test-only secret (not used in production)
+jwt:
+  secret: test-jwt-secret-for-unit-tests-only-not-production
+  expiration: 86400000
+
+# AI — disabled in tests (mock beans injected by test classes)
+ai:
+  deepseek:
+    api-key: test-key
+    base-url: http://localhost:9999
+    model: deepseek-chat
+  qwen:
+    api-key: test-key
+    base-url: http://localhost:9999
+    model: qwen-plus
+  hunyuan:
+    api-key: test-key
+    base-url: http://localhost:9999
+    model: hunyuan-lite
