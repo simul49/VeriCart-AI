@@ -1,0 +1,11 @@
+# Dev profile — now uses MySQL (same as default)
+# H2 configuration removed. Switch to schema-h2.sql and H2 datasource if needed.
+spring:
+  h2:
+    console:
+      enabled: false
+
+logging:
+  level:
+    com.vericart: DEBUG
+    org.springframework.security: DEBUG
