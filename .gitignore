@@ -59,7 +59,5 @@ docker-compose.override.yml
 # === Temp / scratch files ===
 tmp-*.json
 
-# === Agent session state (keep the project repo clean) ===
-# MEMORY.md is intentionally tracked (project conventions); daily notes are not.
-.codebuddy/teams/
-.codebuddy/memory/20*-*.md
+# === IDE / agent session state (never publish to the repo) ===
+.codebuddy/
