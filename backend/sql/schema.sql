@@ -194,12 +194,54 @@ CREATE TABLE IF NOT EXISTS `notification` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================
+-- Product Inquiries (customer → store owner messages)
+-- ============================================
+CREATE TABLE IF NOT EXISTS `inquiry` (
+    `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+    `product_id` BIGINT NOT NULL,
+    `user_id` BIGINT NOT NULL,
+    `seller_id` BIGINT NOT NULL,
+    `message` TEXT NOT NULL,
+    `reply` TEXT,
+    `reply_source` VARCHAR(20) COMMENT 'AI/SELLER - who wrote the reply',
+    `status` VARCHAR(20) DEFAULT 'OPEN' COMMENT 'OPEN/REPLIED/CLOSED',
+    `is_read` TINYINT DEFAULT 0 COMMENT '1 = seller has seen it',
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (`product_id`) REFERENCES `product`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON DELETE CASCADE,
+    INDEX idx_inquiry_seller (`seller_id`, `is_read`),
+    INDEX idx_inquiry_user (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Chat turns inside an inquiry thread (multi-turn conversations)
+CREATE TABLE IF NOT EXISTS `inquiry_message` (
+    `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+    `inquiry_id` BIGINT NOT NULL,
+    `sender` VARCHAR(10) NOT NULL COMMENT 'USER / AI / SELLER',
+    `content` TEXT NOT NULL,
+    `is_read` TINYINT DEFAULT 0 COMMENT '1 = the other side has seen it',
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`inquiry_id`) REFERENCES `inquiry`(`id`) ON DELETE CASCADE,
+    INDEX idx_inquiry_msg (`inquiry_id`, `created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Backfill chat turns from the old single Q&A columns (safe no-op when already migrated)
+INSERT INTO `inquiry_message` (`inquiry_id`, `sender`, `content`, `is_read`, `created_at`)
+SELECT `id`, 'USER', `message`, `is_read`, `created_at` FROM `inquiry`
+WHERE `id` NOT IN (SELECT `inquiry_id` FROM `inquiry_message`);
+INSERT INTO `inquiry_message` (`inquiry_id`, `sender`, `content`, `is_read`, `created_at`)
+SELECT `id`, IF(`reply_source` = 'AI', 'AI', 'SELLER'), `reply`, 0, `updated_at` FROM `inquiry`
+WHERE `reply` IS NOT NULL
+  AND `id` NOT IN (SELECT `inquiry_id` FROM `inquiry_message` WHERE `sender` <> 'USER');
+
+-- ============================================
 -- Seed Data
 -- ============================================
 
 -- Admin user (password: admin123)
 INSERT INTO `user` (`username`, `email`, `password`, `role`, `status`)
-VALUES ('admin', 'admin@vericart.ai', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iAt6Z5EH', 'ADMIN', 1)
+VALUES ('admin', 'admin@vericart.ai', '$2a$10$6Vzf8EuBVoQ4fJVFxjZ/1OwvjtMQWeMxYkw/GMU2gx9GiJNufe0Lu', 'ADMIN', 1)
 ON DUPLICATE KEY UPDATE `username` = `username`;
 
 -- Categories

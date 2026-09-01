@@ -30,6 +30,7 @@ class AiServiceTest {
     @Mock private ReviewMapper reviewMapper;
     @Mock private ProductMapper productMapper;
     @Mock private ReviewService reviewService;
+    @Mock private AuditLogService auditLogService;
 
     @InjectMocks
     private AiService aiService;
@@ -113,12 +114,10 @@ class AiServiceTest {
         when(productMapper.findById(1L)).thenReturn(product);
         when(reviewMapper.findByProductId(1L)).thenReturn(List.of(review));
 
-        // Sentiment fails
+        // Sentiment fails → the review is skipped inside the per-review try/catch,
+        // so fake detection is not reached for it (unused stubbing would be a Mockito error).
         when(aiGateway.analyzeSentiment(anyString()))
                 .thenThrow(new RuntimeException("Qwen API error"));
-        // Fake detection succeeds
-        when(aiGateway.detectFakeReview(anyString(), anyString()))
-                .thenReturn(Map.of("probability", 0.1, "isSuspicious", false));
         when(aiGateway.generateTrustScore(anyString(), anyList()))
                 .thenReturn(Map.of("trustScore", 80, "trustLevel", "High"));
         when(aiGateway.generateReviewSummary(anyList(), anyString()))

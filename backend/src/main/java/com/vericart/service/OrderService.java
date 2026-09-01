@@ -23,6 +23,8 @@ public class OrderService {
     private final ProductMapper productMapper;
     private final CartMapper cartMapper;
     private final NotificationMapper notificationMapper;
+    private final AuditLogService auditLogService;
+    private final UserMapper userMapper;
 
     @Transactional
     public Order createOrder(Long userId, OrderRequest request) {
@@ -82,6 +84,11 @@ public class OrderService {
         notificationMapper.insert(userId, "Order Placed",
                 "Your order #" + orderNo + " has been placed successfully.", "ORDER");
 
+        // Audit (FR-069)
+        User u = userMapper.findById(userId);
+        String username = u != null ? u.getUsername() : null;
+        auditLogService.record(userId, username, "ORDER_CREATED", "ORDER", "ORDER", order.getId(),
+                "Order #" + orderNo + " placed with " + request.getItems().size() + " item(s), total $" + total);
         return order;
     }
 
@@ -117,6 +124,10 @@ public class OrderService {
                 productMapper.update(product);
             }
         }
+
+        User u = userMapper.findById(userId);
+        auditLogService.record(userId, u != null ? u.getUsername() : null,
+                "ORDER_CANCELLED", "ORDER", "ORDER", orderId, "Order #" + order.getOrderNo() + " cancelled");
     }
 
     public List<Order> findAll(String status) {
@@ -125,7 +136,11 @@ public class OrderService {
 
     @Transactional
     public void updateStatus(Long orderId, String status) {
+        Order order = orderMapper.findById(orderId);
+        String previous = order != null ? order.getStatus() : null;
         orderMapper.updateStatus(orderId, status);
+        auditLogService.record(null, null, "ORDER_STATUS_CHANGED", "ORDER", "ORDER", orderId,
+                "Order status changed: " + previous + " -> " + status);
     }
 
     public long count() {

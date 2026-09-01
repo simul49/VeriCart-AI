@@ -73,6 +73,23 @@ public interface ProductMapper {
     @Select("SELECT COUNT(*) FROM product WHERE status = 1")
     long count();
 
+    @Select("<script>" +
+            "SELECT COUNT(*) FROM product WHERE status = 1 " +
+            "<if test='categoryId != null'>AND category_id = #{categoryId}</if>" +
+            "<if test='keyword != null and keyword != \"\"'>AND (name LIKE CONCAT('%',#{keyword},'%') OR description LIKE CONCAT('%',#{keyword},'%'))</if>" +
+            "</script>")
+    long countFiltered(@Param("categoryId") Long categoryId, @Param("keyword") String keyword);
+
+    @Select("<script>" +
+            "SELECT * FROM product WHERE status = 1 AND id IN " +
+            "<foreach item='id' collection='ids' open='(' separator=',' close=')'>" +
+            "#{id}</foreach>" +
+            "</script>")
+    List<Product> findByIds(@Param("ids") List<Long> ids);
+
+    @Select("SELECT * FROM product WHERE status = 1 AND seller_id = #{sellerId} ORDER BY created_at DESC")
+    List<Product> findBySeller(@Param("sellerId") Long sellerId);
+
     @Select("SELECT * FROM product WHERE (trust_score IS NULL OR ai_summary IS NULL) AND review_count > 0 AND status = 1 LIMIT #{limit}")
     List<Product> findProductsNeedingAiUpdate(@Param("limit") int limit);
 }

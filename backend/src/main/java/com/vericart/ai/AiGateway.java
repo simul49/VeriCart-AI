@@ -98,9 +98,21 @@ public class AiGateway {
     /**
      * Get product recommendations
      */
-    public String getRecommendations(String userPreferences, List<Map<String, Object>> products) {
+    public Map<String, Object> getRecommendations(String userPreferences, List<Map<String, Object>> products) {
         log.info("[AI Gateway] Routing recommendations → Qwen");
         return qwenClient.recommend(userPreferences, products);
+    }
+
+    /**
+     * Auto-reply to a customer's product inquiry (used when the seller is not available).
+     * Routes to Qwen — the store-assistant persona. The conversation history lets the
+     * AI answer every follow-up question in context.
+     */
+    public String answerInquiry(Map<String, Object> productInfo, String question,
+                                List<Map<String, Object>> history) {
+        log.info("[AI Gateway] Routing inquiry auto-reply → Qwen for product={}",
+                productInfo != null ? productInfo.get("name") : "?");
+        return qwenClient.answerProductQuestion(productInfo, question, history);
     }
 
     private int computeTrustScore(Map<String, Object> deepSeek, Map<String, Object> qwen, int reviewCount) {
@@ -117,6 +129,8 @@ public class AiGateway {
             Object posObj = qwen.get("positiveRatio");
             if (posObj instanceof Number) {
                 double pos = ((Number) posObj).doubleValue();
+                // Providers may report this as a fraction (0–1) or a percentage (0–100).
+                if (pos > 1.0) pos = pos / 100.0;
                 baseScore = (int) (baseScore * 0.6 + pos * 40);
             }
         }

@@ -10,6 +10,7 @@ import com.vericart.mapper.CartMapper;
 import com.vericart.mapper.NotificationMapper;
 import com.vericart.mapper.OrderMapper;
 import com.vericart.mapper.ProductMapper;
+import com.vericart.mapper.UserMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -34,6 +35,8 @@ class OrderServiceTest {
     @Mock private ProductMapper productMapper;
     @Mock private CartMapper cartMapper;
     @Mock private NotificationMapper notificationMapper;
+    @Mock private AuditLogService auditLogService;
+    @Mock private UserMapper userMapper;
 
     @InjectMocks
     private OrderService orderService;

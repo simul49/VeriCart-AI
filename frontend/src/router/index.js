@@ -72,6 +72,44 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/compare',
+    name: 'Compare',
+    component: () => import('@/views/Compare.vue')
+  },
+  {
+    path: '/notifications',
+    name: 'Notifications',
+    component: () => import('@/views/Notifications.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/messages',
+    name: 'MyMessages',
+    component: () => import('@/views/MyMessages.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/seller',
+    name: 'SellerDashboard',
+    component: () => import('@/views/SellerDashboard.vue'),
+    meta: { requiresAuth: true, requiresSeller: true }
+  },
+  {
+    path: '/how-it-works',
+    name: 'HowItWorks',
+    component: () => import('@/views/HowItWorks.vue')
+  },
+  {
+    path: '/trust-score',
+    name: 'TrustScore',
+    component: () => import('@/views/TrustScore.vue')
+  },
+  {
+    path: '/ai-technology',
+    name: 'AiTechnology',
+    component: () => import('@/views/AiTechnology.vue')
+  },
+  {
     path: '/admin',
     name: 'Admin',
     component: () => import('@/views/Admin.vue'),
@@ -98,6 +136,8 @@ router.beforeEach((to, from, next) => {
   } else if (to.meta.guest && auth.isLoggedIn) {
     next('/')
   } else if (to.meta.requiresAdmin && !auth.isAdmin) {
+    next('/')
+  } else if (to.meta.requiresSeller && !auth.isSeller) {
     next('/')
   } else {
     next()

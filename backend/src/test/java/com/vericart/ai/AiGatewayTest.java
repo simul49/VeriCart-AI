@@ -119,12 +119,18 @@ class AiGatewayTest {
     @Test
     @DisplayName("Should compute trust level labels correctly")
     void shouldComputeTrustLevel() {
+        // 3+ reviews so the low-volume cap (< 3 reviews → max 60) does not apply
+        List<Map<String, Object>> threeReviews = List.of(
+                Map.of("id", 1, "rating", 5, "content", "Great product!"),
+                Map.of("id", 2, "rating", 4, "content", "Good value"),
+                Map.of("id", 3, "rating", 5, "content", "Excellent quality")
+        );
         when(deepSeekClient.analyzeTrust(any(), any()))
                 .thenReturn(Map.of("trustScore", 90));
         when(qwenClient.analyzeSentimentBatch(any()))
                 .thenReturn(null); // Qwen fails
 
-        Map<String, Object> result = aiGateway.generateTrustScore("Phone", reviewData);
+        Map<String, Object> result = aiGateway.generateTrustScore("Phone", threeReviews);
 
         assertEquals("Excellent", result.get("trustLevel"));
     }

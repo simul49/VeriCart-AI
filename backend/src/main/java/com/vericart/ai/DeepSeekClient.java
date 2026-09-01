@@ -21,22 +21,36 @@ public class DeepSeekClient {
     private final String apiKey;
     private final String baseUrl;
     private final String model;
+    private final AiMockService mockService;
+    private final boolean keyIsPlaceholder;
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
 
     public DeepSeekClient(@Value("${ai.deepseek.api-key}") String apiKey,
                           @Value("${ai.deepseek.base-url}") String baseUrl,
-                          @Value("${ai.deepseek.model}") String model) {
+                          @Value("${ai.deepseek.model}") String model,
+                          AiMockService mockService) {
         this.apiKey = apiKey;
         this.baseUrl = baseUrl;
         this.model = model;
+        this.mockService = mockService;
+        this.keyIsPlaceholder = apiKey == null || apiKey.startsWith("YOUR_") || apiKey.isBlank();
         this.httpClient = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(30))
                 .build();
         this.objectMapper = new ObjectMapper();
+
+        if (keyIsPlaceholder && !mockService.isEnabled()) {
+            log.error("DeepSeek API key is a placeholder and mock mode is OFF. AI calls will fail.");
+        }
     }
 
     public Map<String, Object> detectFakeReview(String reviewContent, String productName) {
+        if (mockService.isEnabled()) {
+            log.debug("[DeepSeek Mock] Simulating fake review detection");
+            return mockService.detectFakeReview(reviewContent, productName);
+        }
+
         String systemPrompt = """
             You are a fake review detection expert. Analyze the following review for authenticity.
             Consider: repetitive content, generic praise, unnatural language, spam patterns, overly promotional tone.
@@ -54,6 +68,11 @@ public class DeepSeekClient {
     }
 
     public Map<String, Object> analyzeTrust(String productName, List<Map<String, Object>> reviews) {
+        if (mockService.isEnabled()) {
+            log.debug("[DeepSeek Mock] Simulating trust analysis");
+            return mockService.analyzeTrust(productName, reviews);
+        }
+
         String systemPrompt = """
             You are a trust analysis expert for e-commerce. Analyze the following reviews and determine a trust score.
             Consider: review consistency, review detail level, review authenticity patterns, sentiment consistency.
@@ -77,6 +96,10 @@ public class DeepSeekClient {
     }
 
     private String callAPI(String systemPrompt, String userMessage) {
+        if (keyIsPlaceholder) {
+            throw new RuntimeException("DeepSeek API key is not configured. Set DEEPSEEK_API_KEY env var or enable ai.mock.enabled=true");
+        }
+
         try {
             Map<String, Object> body = Map.of(
                     "model", model,
@@ -97,6 +120,15 @@ public class DeepSeekClient {
                     .build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            int statusCode = response.statusCode();
+
+            if (statusCode != 200) {
+                String errorBody = response.body();
+                log.error("DeepSeek API returned HTTP {}: {}", statusCode, errorBody);
+                throw new RuntimeException(String.format("DeepSeek API error (HTTP %d): %s", statusCode,
+                        errorBody.length() > 200 ? errorBody.substring(0, 200) + "..." : errorBody));
+            }
+
             Map<String, Object> result = objectMapper.readValue(response.body(), new TypeReference<>() {});
 
             @SuppressWarnings("unchecked")
@@ -106,10 +138,11 @@ public class DeepSeekClient {
                 Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
                 return (String) message.get("content");
             }
-            return "{}";
+            throw new RuntimeException("DeepSeek API returned no choices in response: " + response.body());
+        } catch (RuntimeException e) {
+            throw e;
         } catch (Exception e) {
-            log.error("DeepSeek API call failed", e);
-            return "{}";
+            throw new RuntimeException("DeepSeek API call failed: " + e.getMessage(), e);
         }
     }
 

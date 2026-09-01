@@ -34,13 +34,16 @@ mybatis:
 
 # JWT Configuration
 jwt:
-  secret: ${JWT_SECRET:YOUR_JWT_SECRET_CHANGE_ME}
+  secret: ${JWT_SECRET:YOUR_JWT_SECRET_CHANGE_ME_AT_LEAST_256_BITS_LONG}
   expiration: 86400000
 
 # AI Provider Configuration
-# API keys MUST be set via environment variables in production.
+# Set ai.mock.enabled=true to use simulated AI responses without real API keys (for dev/demo).
+# Set ai.mock.enabled=false and provide real keys via env vars for production.
 # Copy .env.example to .env and fill in your actual keys for local development.
 ai:
+  mock:
+    enabled: ${AI_MOCK_ENABLED:true}       # true = simulated AI, false = real APIs
   deepseek:
     api-key: ${DEEPSEEK_API_KEY:YOUR_DEEPSEEK_API_KEY}
     alt-api-key: ${DEEPSEEK_ALT_API_KEY:YOUR_DEEPSEEK_ALT_API_KEY}

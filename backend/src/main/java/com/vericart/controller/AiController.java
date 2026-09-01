@@ -23,8 +23,8 @@ public class AiController {
     }
 
     @PostMapping("/chat")
-    public Result<AiChatResponse> chat(@RequestBody AiChatRequest request, Authentication auth) {
-        Long userId = (Long) auth.getPrincipal();
+    public Result<AiChatResponse> chat(@RequestBody AiChatRequest request,
+                                        @RequestParam(value = "userId", required = false) Long userId) {
         if (request.getProductId() == null && request.getQuestion() != null) {
             return Result.success(aiService.generalChat(userId, request.getQuestion()));
         }
@@ -38,8 +38,8 @@ public class AiController {
     }
 
     @PostMapping("/recommend")
-    public Result<Map<String, Object>> recommend(@RequestBody Map<String, String> body, Authentication auth) {
-        Long userId = (Long) auth.getPrincipal();
+    public Result<Map<String, Object>> recommend(@RequestBody Map<String, String> body,
+                                                  @RequestParam(value = "userId", required = false) Long userId) {
         String preferences = body.getOrDefault("preferences", "");
         return Result.success(aiService.recommend(userId, preferences));
     }

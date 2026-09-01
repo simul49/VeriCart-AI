@@ -1,6 +1,24 @@
 import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { createPinia } from 'pinia'
+import { createRouter, createMemoryHistory } from 'vue-router'
 import ProductCard from '../components/ProductCard.vue'
+
+// ProductCard uses useRouter + the cart/auth Pinia stores, so mount it with
+// a real router and a fresh Pinia instance.
+const router = createRouter({
+  history: createMemoryHistory(),
+  routes: [{ path: '/', component: { template: '<div />' } }],
+})
+
+function mountProduct(product) {
+  return mount(ProductCard, {
+    props: { product },
+    global: {
+      plugins: [createPinia(), router],
+    },
+  })
+}
 
 describe('ProductCard', () => {
   const mockProduct = {
@@ -15,38 +33,28 @@ describe('ProductCard', () => {
   }
 
   it('renders product name', () => {
-    const wrapper = mount(ProductCard, {
-      props: { product: mockProduct },
-    })
+    const wrapper = mountProduct(mockProduct)
     expect(wrapper.text()).toContain('Test Phone')
   })
 
   it('renders product price', () => {
-    const wrapper = mount(ProductCard, {
-      props: { product: mockProduct },
-    })
+    const wrapper = mountProduct(mockProduct)
     expect(wrapper.text()).toContain('999.99')
   })
 
-  it('renders trust level badge', () => {
-    const wrapper = mount(ProductCard, {
-      props: { product: mockProduct },
-    })
-    expect(wrapper.text()).toContain('High')
+  it('renders trust score badge', () => {
+    const wrapper = mountProduct(mockProduct)
+    expect(wrapper.text()).toContain('88')
   })
 
   it('renders review count', () => {
-    const wrapper = mount(ProductCard, {
-      props: { product: mockProduct },
-    })
+    const wrapper = mountProduct(mockProduct)
     expect(wrapper.text()).toContain('42')
   })
 
   it('handles product without trust score', () => {
     const product = { ...mockProduct, trustScore: null, trustLevel: null }
-    const wrapper = mount(ProductCard, {
-      props: { product },
-    })
+    const wrapper = mountProduct(product)
     // Should not crash
     expect(wrapper.html()).toBeTruthy()
   })

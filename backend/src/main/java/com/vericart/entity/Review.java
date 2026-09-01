@@ -25,4 +25,10 @@ public class Review {
     // joined fields
     private String username;
     private String userAvatar;
+
+    // computed: 1 when the review is tied to a real order (verified purchase)
+    private Integer verified;
+
+    // joined from product (used by seller dashboard)
+    private String productName;
 }

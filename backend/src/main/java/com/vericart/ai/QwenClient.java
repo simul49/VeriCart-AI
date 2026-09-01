@@ -21,22 +21,36 @@ public class QwenClient {
     private final String apiKey;
     private final String baseUrl;
     private final String model;
+    private final AiMockService mockService;
+    private final boolean keyIsPlaceholder;
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
 
     public QwenClient(@Value("${ai.qwen.api-key}") String apiKey,
                       @Value("${ai.qwen.base-url}") String baseUrl,
-                      @Value("${ai.qwen.model}") String model) {
+                      @Value("${ai.qwen.model}") String model,
+                      AiMockService mockService) {
         this.apiKey = apiKey;
         this.baseUrl = baseUrl;
         this.model = model;
+        this.mockService = mockService;
+        this.keyIsPlaceholder = apiKey == null || apiKey.startsWith("YOUR_") || apiKey.isBlank();
         this.httpClient = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(30))
                 .build();
         this.objectMapper = new ObjectMapper();
+
+        if (keyIsPlaceholder && !mockService.isEnabled()) {
+            log.error("Qwen API key is a placeholder and mock mode is OFF. AI calls will fail.");
+        }
     }
 
     public Map<String, Object> analyzeSentiment(String reviewContent) {
+        if (mockService.isEnabled()) {
+            log.debug("[Qwen Mock] Simulating sentiment analysis");
+            return mockService.analyzeSentiment(reviewContent);
+        }
+
         String systemPrompt = """
             Analyze customer review sentiment. Return ONLY a JSON:
             {
@@ -52,23 +66,16 @@ public class QwenClient {
     }
 
     public Map<String, Object> analyzeSentimentBatch(List<Map<String, Object>> reviews) {
-        if (reviews.isEmpty()) return Map.of("positiveRatio", 50);
-
-        int positive = 0, negative = 0, total = 0;
-        for (Map<String, Object> r : reviews) {
-            Object rating = r.get("rating");
-            if (rating instanceof Number) {
-                int rv = ((Number) rating).intValue();
-                if (rv >= 4) positive++;
-                else if (rv <= 2) negative++;
-                total++;
-            }
-        }
-        double ratio = total > 0 ? (positive * 100.0 / total) : 50;
-        return Map.of("positiveRatio", ratio, "total", total, "positiveCount", positive, "negativeCount", negative);
+        // Always use the heuristic calculation — no real API needed for batch stats
+        return mockService.analyzeSentimentBatch(reviews);
     }
 
     public String chat(String productName, String question, List<Map<String, Object>> reviews) {
+        if (mockService.isEnabled()) {
+            log.debug("[Qwen Mock] Simulating chat");
+            return mockService.chat(productName, question, reviews);
+        }
+
         String systemPrompt = """
             You are VeriCart AI Shopping Assistant. Help customers make informed purchasing decisions.
             Be honest, transparent, and base your answers on actual review data provided.
@@ -88,7 +95,62 @@ public class QwenClient {
         return callAPI(systemPrompt, sb.toString());
     }
 
+    /**
+     * AI auto-reply for customer product inquiries — answers as the store's assistant
+     * while the seller is unavailable. Uses the product card + conversation history
+     * as context so EVERY question (including follow-ups) gets a proper answer.
+     */
+    public String answerProductQuestion(Map<String, Object> productInfo, String question,
+                                        List<Map<String, Object>> history) {
+        if (mockService.isEnabled()) {
+            log.debug("[Qwen Mock] Simulating inquiry auto-reply");
+            return mockService.answerProductQuestion(productInfo, question, history);
+        }
+
+        String systemPrompt = """
+            You are the assistant of a store on the VeriCart AI marketplace.
+            A customer is chatting with the store, and the owner is currently unavailable.
+            Reply to the customer directly, in the same language as their latest message.
+            Use the conversation history to understand follow-up questions ("it", "the
+            charger", "when exactly", etc. refer to earlier messages).
+            Answer ONLY based on the product facts provided (name, brand, price, stock,
+            description, rating, trust score, review summary). If the facts don't answer
+            the question, say the owner will confirm details as soon as they return.
+            Be friendly, concise (3-5 sentences), honest, and never invent stock/prices.
+            """;
+
+        StringBuilder ctx = new StringBuilder();
+        if (productInfo != null && !productInfo.isEmpty()) {
+            ctx.append("### Product Card\n");
+            ctx.append("Name: ").append(productInfo.getOrDefault("name", "?")).append("\n");
+            ctx.append("Brand: ").append(productInfo.getOrDefault("brand", "N/A")).append("\n");
+            ctx.append("Price: $").append(productInfo.getOrDefault("price", "N/A")).append("\n");
+            ctx.append("Stock: ").append(productInfo.getOrDefault("stock", "N/A")).append("\n");
+            ctx.append("Rating: ").append(productInfo.getOrDefault("rating", "N/A")).append("/5\n");
+            ctx.append("Trust score: ").append(productInfo.getOrDefault("trustScore", "N/A")).append("/100\n");
+            ctx.append("Description: ").append(productInfo.getOrDefault("description", "")).append("\n");
+            if (productInfo.get("aiSummary") != null) {
+                ctx.append("AI review summary: ").append(productInfo.get("aiSummary")).append("\n");
+            }
+        }
+        if (history != null && !history.isEmpty()) {
+            ctx.append("\n### Conversation history (oldest → newest)\n");
+            for (Map<String, Object> m : history) {
+                ctx.append("[").append(m.getOrDefault("sender", "?")).append("] ")
+                  .append(m.getOrDefault("content", "")).append("\n");
+            }
+        }
+        ctx.append("\n### Customer Message\n").append(question);
+
+        return callAPI(systemPrompt, ctx.toString());
+    }
+
     public String generalChat(String question, List<Map<String, Object>> productContext) {
+        if (mockService.isEnabled()) {
+            log.debug("[Qwen Mock] Simulating general chat");
+            return mockService.generalChat(question, productContext);
+        }
+
         String systemPrompt = """
             You are VeriCart AI Shopping Assistant. Help customers with general shopping questions,
             product comparisons, and purchasing advice. You have access to the store's product catalog.
@@ -109,24 +171,40 @@ public class QwenClient {
         return callAPI(systemPrompt, sb.toString());
     }
 
-    public String recommend(String userPreferences, List<Map<String, Object>> products) {
+    public Map<String, Object> recommend(String userPreferences, List<Map<String, Object>> products) {
+        if (mockService.isEnabled()) {
+            log.debug("[Qwen Mock] Simulating recommendations");
+            return mockService.recommend(userPreferences, products);
+        }
+
         String systemPrompt = """
             You are a product recommendation expert. Based on user preferences and available products,
-            recommend the top 3 products. Return ONLY a JSON array:
-            [{"productId": id, "reason": "why recommended"}]
+            recommend the top 3 products. Return ONLY a JSON object with this structure:
+            {
+              "recommendations": [
+                {"productId": 1, "name": "Product Name", "price": 99.99, "rating": 4.5, "trustScore": 85, "reason": "why recommended", "highlights": ["highlight1"]}
+              ],
+              "explanation": "Markdown explanation of why these products were chosen"
+            }
             """;
 
         StringBuilder sb = new StringBuilder("User preferences: ").append(userPreferences).append("\nProducts:\n");
         for (Map<String, Object> p : products) {
             sb.append("- ID: ").append(p.get("id")).append(", Name: ").append(p.get("name"))
               .append(", Price: ").append(p.get("price"))
-              .append(", Rating: ").append(p.get("rating")).append("\n");
+              .append(", Rating: ").append(p.get("rating"))
+              .append(", TrustScore: ").append(p.get("trustScore")).append("\n");
         }
 
-        return callAPI(systemPrompt, sb.toString());
+        String response = callAPI(systemPrompt, sb.toString());
+        return parseJson(response);
     }
 
     private String callAPI(String systemPrompt, String userMessage) {
+        if (keyIsPlaceholder) {
+            throw new RuntimeException("Qwen API key is not configured. Set QWEN_API_KEY env var or enable ai.mock.enabled=true");
+        }
+
         try {
             Map<String, Object> body = Map.of(
                     "model", model,
@@ -147,6 +225,15 @@ public class QwenClient {
                     .build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            int statusCode = response.statusCode();
+
+            if (statusCode != 200) {
+                String errorBody = response.body();
+                log.error("Qwen API returned HTTP {}: {}", statusCode, errorBody);
+                throw new RuntimeException(String.format("Qwen API error (HTTP %d): %s", statusCode,
+                        errorBody.length() > 200 ? errorBody.substring(0, 200) + "..." : errorBody));
+            }
+
             Map<String, Object> result = objectMapper.readValue(response.body(), new TypeReference<>() {});
 
             @SuppressWarnings("unchecked")
@@ -156,10 +243,11 @@ public class QwenClient {
                 Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
                 return (String) message.get("content");
             }
-            return "{}";
+            throw new RuntimeException("Qwen API returned no choices in response: " + response.body());
+        } catch (RuntimeException e) {
+            throw e;
         } catch (Exception e) {
-            log.error("Qwen API call failed", e);
-            return "{}";
+            throw new RuntimeException("Qwen API call failed: " + e.getMessage(), e);
         }
     }
 

@@ -20,6 +20,7 @@ public class AuthService {
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
+    private final AuditLogService auditLogService;
 
     @Transactional
     public Result<LoginResponse> register(RegisterRequest request) {
@@ -41,6 +42,9 @@ public class AuthService {
 
         String token = jwtTokenProvider.generateToken(user.getId(), user.getEmail(), user.getRole());
         LoginResponse resp = new LoginResponse(token, user.getId(), user.getUsername(), user.getEmail(), user.getRole());
+
+        auditLogService.record(user.getId(), user.getUsername(), "REGISTER", "LOGIN", "USER", user.getId(),
+                "New user registered: " + user.getUsername());
         return Result.success("Registration successful", resp);
     }
 
@@ -58,6 +62,9 @@ public class AuthService {
 
         String token = jwtTokenProvider.generateToken(user.getId(), user.getEmail(), user.getRole());
         LoginResponse resp = new LoginResponse(token, user.getId(), user.getUsername(), user.getEmail(), user.getRole());
+
+        auditLogService.record(user.getId(), user.getUsername(), "LOGIN", "LOGIN", "USER", user.getId(),
+                "User logged in: " + user.getUsername());
         return Result.success(resp);
     }
 }

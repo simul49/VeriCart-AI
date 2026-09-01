@@ -1,69 +1,128 @@
 <template>
   <div class="auth-page">
-    <div class="auth-card">
-      <h2>Create Account</h2>
-      <p style="color:#6B7280;margin-bottom:24px">Join VeriCart AI for a smarter shopping experience</p>
+    <!-- Brand panel -->
+    <aside class="auth-hero">
+      <router-link to="/" class="auth-hero-logo">
+        <BrandMark :size="30" />
+        VeriCart<span class="brand-ai">AI</span>
+      </router-link>
 
-      <el-form :model="form" :rules="rules" ref="formRef" label-position="top">
-        <el-form-item label="Username" prop="username">
-          <el-input v-model="form.username" placeholder="Choose a username" size="large" />
-        </el-form-item>
-        <el-form-item label="Email" prop="email">
-          <el-input v-model="form.email" placeholder="you@example.com" size="large" />
-        </el-form-item>
-        <el-form-item label="Password" prop="password">
-          <el-input v-model="form.password" type="password" placeholder="At least 8 characters"
-            size="large" show-password />
-        </el-form-item>
-        <el-form-item label="Confirm Password" prop="confirmPassword">
-          <el-input v-model="form.confirmPassword" type="password" placeholder="Re-enter password"
-            size="large" show-password @keyup.enter="handleRegister" />
-        </el-form-item>
-        <el-button type="primary" size="large" :loading="loading" style="width:100%"
-          @click="handleRegister">Create Account</el-button>
-      </el-form>
+      <div class="auth-hero-body">
+        <h2>{{ $t('auth.registerWelcome') }}</h2>
+        <p>{{ $t('auth.registerIntro') }}</p>
+        <div class="auth-hero-points">
+          <div class="auth-hero-point">
+            <el-icon><Warning /></el-icon> {{ $t('home.f2Title') }}
+          </div>
+          <div class="auth-hero-point">
+            <el-icon><ChatDotRound /></el-icon> {{ $t('messages.composerHint') }}
+          </div>
+          <div class="auth-hero-point">
+            <el-icon><Lock /></el-icon> {{ $t('home.f4Desc') }}
+          </div>
+        </div>
+      </div>
 
-      <p style="text-align:center;margin-top:16px;color:#6B7280">
-        Already have an account? <router-link to="/login">Sign in</router-link>
-      </p>
+      <p class="auth-hero-foot">{{ $t('auth.createOne') }}</p>
+    </aside>
+
+    <!-- Form panel -->
+    <div class="auth-form-wrap">
+      <div class="auth-card">
+        <h1>{{ $t('auth.signUpTitle') }}</h1>
+        <p class="auth-sub">{{ $t('auth.signUpSub') }}</p>
+
+        <el-form :model="form" :rules="rules" ref="formRef" label-position="top">
+          <el-form-item :label="$t('auth.username')" prop="username">
+            <el-input
+              v-model="form.username"
+              :placeholder="$t('auth.usernamePlaceholder')"
+              size="large"
+              :prefix-icon="User"
+            />
+          </el-form-item>
+
+          <el-form-item :label="$t('auth.email')" prop="email">
+            <el-input
+              v-model="form.email"
+              :placeholder="$t('auth.emailPlaceholder')"
+              size="large"
+              :prefix-icon="Message"
+            />
+          </el-form-item>
+
+          <el-form-item :label="$t('auth.password')" prop="password">
+            <el-input
+              v-model="form.password"
+              type="password"
+              :placeholder="$t('auth.passwordPlaceholder')"
+              size="large"
+              show-password
+              :prefix-icon="Lock"
+            />
+          </el-form-item>
+
+          <el-form-item :label="$t('auth.confirmPassword')" prop="confirmPassword">
+            <el-input
+              v-model="form.confirmPassword"
+              type="password"
+              :placeholder="$t('auth.confirmPlaceholder')"
+              size="large"
+              show-password
+              :prefix-icon="Lock"
+              @keyup.enter="handleRegister"
+            />
+          </el-form-item>
+
+          <el-button type="primary" size="large" :loading="loading" class="btn-block" @click="handleRegister">
+            {{ $t('auth.signUpTitle') }}
+          </el-button>
+        </el-form>
+
+        <p class="auth-alt">
+          {{ $t('auth.hasAccount') }} <router-link to="/login">{{ $t('auth.goSignIn') }}</router-link>
+        </p>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue'
+import { reactive, ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
+import { User, Message, Lock } from '@element-plus/icons-vue'
+import BrandMark from '@/components/BrandMark.vue'
 
+const { t } = useI18n()
 const router = useRouter()
 const auth = useAuthStore()
 const formRef = ref()
 const loading = ref(false)
 
-const form = reactive({
-  username: '', email: '', password: '', confirmPassword: ''
-})
+const form = reactive({ username: '', email: '', password: '', confirmPassword: '' })
 
 const validateConfirm = (rule, value, callback) => {
-  if (value !== form.password) callback(new Error('Passwords do not match'))
+  if (value !== form.password) callback(new Error(t('auth.passwordMismatch')))
   else callback()
 }
 
-const rules = {
+const rules = computed(() => ({
   username: [
-    { required: true, message: 'Username is required', trigger: 'blur' },
-    { min: 3, max: 50, message: 'Username must be 3-50 characters', trigger: 'blur' }
+    { required: true, message: t('auth.usernameRequired'), trigger: 'blur' },
+    { min: 3, max: 50, message: t('auth.usernameLen'), trigger: 'blur' }
   ],
-  email: [{ required: true, message: 'Email is required', trigger: 'blur' }],
+  email: [{ required: true, message: t('auth.emailRequired'), trigger: 'blur' }],
   password: [
-    { required: true, message: 'Password is required', trigger: 'blur' },
-    { min: 8, message: 'Password must be at least 8 characters', trigger: 'blur' }
+    { required: true, message: t('auth.passwordRequired'), trigger: 'blur' },
+    { min: 8, message: t('auth.passwordMin'), trigger: 'blur' }
   ],
   confirmPassword: [
-    { required: true, message: 'Please confirm password', trigger: 'blur' },
+    { required: true, message: t('auth.confirmPassword'), trigger: 'blur' },
     { validator: validateConfirm, trigger: 'blur' }
   ]
-}
+}))
 
 async function handleRegister() {
   const valid = await formRef.value.validate().catch(() => false)
@@ -81,15 +140,3 @@ async function handleRegister() {
   }
 }
 </script>
-
-<style scoped>
-.auth-page {
-  min-height: 100vh; display: flex; align-items: center; justify-content: center;
-  background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%);
-}
-.auth-card {
-  background: white; padding: 40px; border-radius: 20px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.08); width: 100%; max-width: 420px;
-}
-.auth-card h2 { font-size: 28px; font-weight: 700; margin-bottom: 4px; }
-</style>

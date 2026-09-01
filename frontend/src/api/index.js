@@ -62,7 +62,11 @@ export const productApi = {
   create: (data) => api.post('/seller/products', data),
   update: (id, data) => api.put(`/seller/products/${id}`, data),
   delete: (id) => api.delete(`/seller/products/${id}`),
-  categories: () => api.get('/categories')
+  categories: () => api.get('/categories'),
+  // Paginated listing → {items,total,page,size,totalPages}
+  page: (params) => api.get('/products/page', { params }),
+  // FR-057 comparison
+  compare: (ids) => api.get('/products/compare', { params: { ids } })
 }
 
 // ---- Cart ----
@@ -88,7 +92,13 @@ export const orderApi = {
 export const reviewApi = {
   create: (data) => api.post('/reviews', data),
   byProduct: (productId) => api.get(`/reviews/product/${productId}`),
-  delete: (id) => api.delete(`/reviews/${id}`)
+  delete: (id) => api.delete(`/reviews/${id}`),
+  // FR-034 edit · FR-037 report · explainable trust metrics
+  update: (id, data) => api.put(`/reviews/${id}`, data),
+  report: (id) => api.post(`/reviews/${id}/report`),
+  myReviews: () => api.get('/reviews/my'),
+  trustMetrics: (productId) => api.get(`/reviews/product/${productId}/trust`),
+  hasReviewed: (productId) => api.get(`/reviews/product/${productId}/mine`)
 }
 
 // ---- Wishlist ----
@@ -115,4 +125,34 @@ export const adminApi = {
   flaggedReviews: () => api.get('/admin/reviews/flagged'),
   products: () => api.get('/admin/products'),
   users: () => api.get('/admin/users')
+}
+
+// ---- Notifications (FR-065–068) ----
+export const notificationApi = {
+  list: (limit = 30) => api.get('/notifications', { params: { limit } }),
+  unreadCount: () => api.get('/notifications/unread-count'),
+  markRead: (id) => api.put(`/notifications/${id}/read`),
+  markAllRead: () => api.put('/notifications/read-all'),
+  delete: (id) => api.delete(`/notifications/${id}`)
+}
+
+// ---- Seller Dashboard ----
+export const sellerApi = {
+  products: () => api.get('/seller/products'),
+  orders: (status) => api.get('/seller/orders', { params: status ? { status } : {} }),
+  orderItems: (id) => api.get(`/seller/orders/${id}/items`),
+  updateOrderStatus: (id, status) => api.put(`/seller/orders/${id}/status`, { status }),
+  reviews: () => api.get('/seller/reviews'),
+  stats: () => api.get('/seller/stats')
+}
+
+// ---- Product inquiries (message the store owner) ----
+export const messageApi = {
+  send: (data) => api.post('/messages', data),
+  sendFollowUp: (id, message) => api.post(`/messages/${id}/send`, { message }),
+  myMessages: () => api.get('/messages/my'),
+  sellerMessages: () => api.get('/seller/messages'),
+  sellerUnreadCount: () => api.get('/seller/messages/unread-count'),
+  reply: (id, reply) => api.put(`/seller/messages/${id}/reply`, { reply }),
+  markRead: (id) => api.put(`/seller/messages/${id}/read`)
 }

@@ -19,6 +19,14 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true,
+    // Element Plus components auto-import their theme CSS — process it instead of
+    // letting Node's ESM loader choke on ".css" files.
+    css: true,
+    server: {
+      deps: {
+        inline: ['element-plus'],
+      },
+    },
     include: ['src/**/*.{test,spec}.{js,jsx}'],
     coverage: {
       provider: 'v8',

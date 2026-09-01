@@ -4,6 +4,7 @@ import com.vericart.entity.Review;
 import com.vericart.exception.BusinessException;
 import com.vericart.mapper.ProductMapper;
 import com.vericart.mapper.ReviewMapper;
+import com.vericart.mapper.UserMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,6 +26,9 @@ class ReviewServiceTest {
 
     @Mock private ReviewMapper reviewMapper;
     @Mock private ProductMapper productMapper;
+    @Mock private NotificationService notificationService;
+    @Mock private AuditLogService auditLogService;
+    @Mock private UserMapper userMapper;
 
     @InjectMocks
     private ReviewService reviewService;
