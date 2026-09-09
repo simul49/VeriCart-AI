@@ -105,8 +105,12 @@ async function send() {
     const res = await aiApi.chat(payload)
     const answer = res.data?.answer || res?.answer || 'I\'m not sure about that. Try rephrasing your question.'
     messages.value.push({ role: 'assistant', content: answer })
-  } catch {
-    messages.value.push({ role: 'assistant', content: 'Sorry, I encountered an error. Please try again.' })
+  } catch (e) {
+    const isTimeout = e?.code === 'ECONNABORTED' || /timeout/i.test(e?.message || '')
+    const msg = isTimeout
+      ? '⏳ The AI is taking longer than usual. Please try again in a moment.'
+      : 'Sorry, I encountered an error. Please try again.'
+    messages.value.push({ role: 'assistant', content: msg })
   } finally {
     loading.value = false
     await nextTick()

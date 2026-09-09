@@ -150,7 +150,7 @@
       </div>
 
       <!-- ============ Category bar ============ -->
-      <div class="category-wrap" v-if="categoryTree.length" @mouseleave="activeMega = null">
+      <div class="category-wrap" v-if="categoryTree.length">
         <div class="category-strip">
           <button
             type="button"
@@ -170,7 +170,6 @@
               class="cat-item"
               v-for="m in categoryTree"
               :key="m.id"
-              @mouseenter="activeMega = m.id"
             >
               <router-link
                 :to="`/category/${m.id}`"
@@ -189,20 +188,7 @@
           ><el-icon><ArrowRight /></el-icon></button>
         </div>
 
-        <!-- Mega-menu: subcategories for the hovered main category -->
-        <div class="mega-panel" v-if="activeMega" @mouseenter="activeMega = activeMega">
-          <div class="mega-inner">
-            <p class="mega-title" v-if="currentMega">{{ catName(currentMega) }}</p>
-            <div class="mega-grid">
-              <router-link
-                v-for="s in (currentMega ? currentMega.subs : [])"
-                :key="s.id"
-                :to="`/products?categoryId=${s.id}`"
-                class="mega-sub"
-              >{{ s.name }}</router-link>
-            </div>
-          </div>
-        </div>
+        <!-- Mega-menu removed: sub-category browsing happens on the category page -->
       </div>
 
     </header>
@@ -387,10 +373,6 @@ const categoryTree = computed(() => {
       .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0)),
   }))
 })
-
-// Mega-menu hover state
-const activeMega = ref(null)
-const currentMega = computed(() => categoryTree.value.find(m => m.id === activeMega.value) || null)
 
 // ---- Category bar pager (prev / next page through the mains + wheel) ----
 const catBar = ref(null)
@@ -648,39 +630,6 @@ function handleLogout() {
 /* Category wrapper (relative anchor for the mega-menu) */
 .category-wrap { position: relative; }
 .cat-item { display: flex; align-items: center; }
-
-/* Mega-menu (subcategories dropdown) */
-.mega-panel {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background: #fff;
-  border-top: 1px solid var(--border-light);
-  box-shadow: var(--shadow-md);
-  z-index: 1100;
-  padding: 18px 0;
-}
-.mega-inner { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
-.mega-title {
-  font-size: var(--font-xs);
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin: 0 0 12px;
-}
-.mega-grid { display: flex; flex-wrap: wrap; gap: 8px; }
-.mega-sub {
-  padding: 7px 14px;
-  border-radius: var(--radius-full);
-  background: var(--surface-muted);
-  font-size: var(--font-sm);
-  font-weight: 600;
-  color: var(--text-secondary);
-  transition: all var(--transition);
-}
-.mega-sub:hover { background: var(--primary-light); color: var(--primary-dark); }
 
 /* Brand */
 .brand {

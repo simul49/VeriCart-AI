@@ -10,6 +10,7 @@ import com.vericart.mapper.ReviewMapper;
 import com.vericart.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -150,7 +151,7 @@ public class ReviewService {
         return u != null ? u.getUsername() : null;
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void updateAiFields(Long reviewId, String sentiment, String emotion,
                                BigDecimal fakeProbability, String fakeReason, Integer isFlagged) {
         Review review = new Review();

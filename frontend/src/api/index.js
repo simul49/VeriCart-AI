@@ -112,11 +112,16 @@ export const wishlistApi = {
 }
 
 // ---- AI ----
+// These endpoints call real LLMs (Kimi / DeepSeek / Hunyuan) which can take
+// 30–90s each, and /ai/analyze can fan out across multiple LLMs per review.
+// Override the default 30s axios timeout for these slow endpoints.
+const AI_TIMEOUT_MS = 120000 // 2 min — chat/recommend
+const AI_ANALYZE_TIMEOUT_MS = 180000 // 3 min — batch analyze (multi-LLM per review)
 export const aiApi = {
-  analyze: (productId) => api.post(`/ai/analyze/${productId}`),
-  chat: (data) => api.post('/ai/chat', data),
-  recommend: (data) => api.post('/ai/recommend', data),
-  batch: () => api.post('/ai/batch')
+  analyze: (productId) => api.post(`/ai/analyze/${productId}`, null, { timeout: AI_ANALYZE_TIMEOUT_MS }),
+  chat: (data) => api.post('/ai/chat', data, { timeout: AI_TIMEOUT_MS }),
+  recommend: (data) => api.post('/ai/recommend', data, { timeout: AI_TIMEOUT_MS }),
+  batch: () => api.post('/ai/batch', null, { timeout: AI_ANALYZE_TIMEOUT_MS })
 }
 
 // ---- Admin ----

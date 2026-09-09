@@ -50,6 +50,9 @@ public class SecurityConfig {
             )
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/favicon.ico", "/error", "/h2-console/**").permitAll()
+                // Static assets for the SPA build (images, JS, CSS) must be public,
+                // otherwise the backend-served frontend returns 401 for /images/** etc.
+                .requestMatchers("/images/**", "/assets/**").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/categories/**").permitAll()

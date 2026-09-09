@@ -85,8 +85,21 @@ public class AiService {
             String trustLevel = trustResult.get("trustLevel") != null
                     ? trustResult.get("trustLevel").toString() : "Medium";
 
-            // 3. Generate review summary via Hunyuan
-            Map<String, Object> summary = aiGateway.generateReviewSummary(reviewData, product.getName());
+            // 3. Generate review summary via Hunyuan.
+            // RESILIENT: a summariser outage (e.g. Hunyuan 401006 / key issue) must NOT
+            // abort the whole analysis or roll back the per-review verdicts already written.
+            Map<String, Object> summary = null;
+            try {
+                summary = aiGateway.generateReviewSummary(reviewData, product.getName());
+            } catch (Exception e) {
+                log.warn("AI review summary failed, falling back to mock summary: {}", e.getMessage());
+                try {
+                    summary = mockService.generateReviewSummary(reviewData, product.getName());
+                } catch (Exception ex) {
+                    log.warn("Mock summary fallback also failed, skipping summary: {}", ex.getMessage());
+                    summary = null;
+                }
+            }
 
             // 4. Re-read reviews so metrics reflect the freshly written AI fields
             List<Review> analyzed = reviewMapper.findByProductId(productId);
@@ -237,16 +250,29 @@ public class AiService {
     @Async
     @Transactional
     public void batchAnalyzePending() {
-        List<Review> pendingReviews = reviewMapper.findReviewsNeedingAnalysis(20);
+        // Products whose AI fields (trust score / summary) are still missing
         List<Product> pendingProducts = productMapper.findProductsNeedingAiUpdate(10);
+        // Reviews still awaiting an AI verdict (new reviews on already-analysed products)
+        List<Review> pendingReviews = reviewMapper.findReviewsNeedingAnalysis(200);
 
-        log.info("[AI Batch] Processing {} reviews and {} products", pendingReviews.size(), pendingProducts.size());
+        // Collect every product that needs (re)analysis
+        Set<Long> productIds = new HashSet<>();
+        for (Product p : pendingProducts) productIds.add(p.getId());
+        for (Review r : pendingReviews) {
+            if (r.getProductId() != null) productIds.add(r.getProductId());
+        }
 
-        for (Product product : pendingProducts) {
+        log.info("[AI Batch] {} reviews pending across {} products ({} products need AI fields)",
+                pendingReviews.size(), productIds.size(), pendingProducts.size());
+
+        int processed = 0;
+        for (Long productId : productIds) {
+            if (processed >= 20) break; // cap work per run; remaining caught next cycle
             try {
-                analyzeProduct(product.getId());
+                analyzeProduct(productId);
+                processed++;
             } catch (Exception e) {
-                log.error("[AI Batch] Failed to analyze product {}: {}", product.getId(), e.getMessage());
+                log.error("[AI Batch] Failed to analyze product {}: {}", productId, e.getMessage());
             }
         }
     }

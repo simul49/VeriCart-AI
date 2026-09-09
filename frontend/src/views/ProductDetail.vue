@@ -738,7 +738,12 @@ async function analyzeProduct() {
     const prod = await productApi.detail(route.params.id)
     product.value = prod.data
     await loadTrustData()
-  } catch (e) { ElMessage.error('AI analysis failed') }
+  } catch (e) {
+    const isTimeout = e?.code === 'ECONNABORTED' || /timeout/i.test(e?.message || '')
+    ElMessage.error(isTimeout
+      ? 'AI analysis is taking longer than usual. Please try again — analysis continues in the background.'
+      : 'AI analysis failed')
+  }
   finally { analyzing.value = false }
 }
 

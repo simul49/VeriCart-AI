@@ -60,6 +60,7 @@ docker-compose.override.yml
 tmp-*.json
 tmp_*.json
 tmp_*.py
+tmp_*.txt
 ~$*
 *.err
 *.csv

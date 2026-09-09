@@ -61,10 +61,15 @@
       </div>
     </div>
 
-    <!-- ============ GROUPED BY SUB-CATEGORY (All Products overview) ============ -->
+    <!-- ============ All Products overview (flat, mixed grid) ============ -->
     <div v-if="isGrouped">
+      <div class="shop-all-head">
+        <h2 class="shop-all-title">Shop All</h2>
+        <p class="shop-all-sub">Every product with a picture, all in one place</p>
+      </div>
+
       <div v-if="groupedLoading" class="product-grid">
-        <div v-for="n in 8" :key="n" class="skeleton-card">
+        <div v-for="n in 12" :key="n" class="skeleton-card">
           <div class="loading-skeleton" style="padding-top:100%;border-radius:16px 16px 0 0" />
           <div class="skeleton-body">
             <div class="loading-skeleton" style="height:14px;width:85%" />
@@ -74,26 +79,14 @@
         </div>
       </div>
 
-      <div v-else-if="groupedData.length" class="category-sections">
-        <section v-for="sec in groupedData" :key="sec.id" class="cat-section">
-          <h2 class="cat-section-title">{{ sec.name }}</h2>
-
-          <div v-for="sub in sec.subcategories" :key="sub.id" class="sub-section">
-            <div class="sub-header">
-              <h3 class="sub-title">{{ sub.name }}</h3>
-              <button class="view-all" @click="goToSub(sub.id)">View all →</button>
-            </div>
-            <div class="product-grid">
-              <ProductCard
-                v-for="p in sub.products"
-                :key="p.id"
-                :product="p"
-                :show-image="true"
-                :clickable="true"
-              />
-            </div>
-          </div>
-        </section>
+      <div v-else-if="filteredGroupedProducts.length" class="product-grid">
+        <ProductCard
+          v-for="p in filteredGroupedProducts"
+          :key="p.id"
+          :product="p"
+          :show-image="true"
+          :clickable="true"
+        />
       </div>
 
       <div v-else class="empty-state">
@@ -180,12 +173,23 @@ const displayProducts = computed(() => products.value)
 const isGrouped = computed(() => !filterCategory.value && !searchKeyword.value)
 
 // Total products shown across the grouped sections.
-const groupedTotal = computed(() =>
-  groupedData.value.reduce(
-    (sum, sec) => sum + sec.subcategories.reduce((a, sub) => a + sub.products.length, 0),
-    0
+// Flatten every sub-category's products into a single array so the All
+// Products overview renders as one continuous grid instead of separate sections.
+const flatGroupedProducts = computed(() =>
+  groupedData.value.flatMap(sec =>
+    sec.subcategories.flatMap(sub => sub.products.map(p => ({ ...p, _subName: sub.name, _mainName: sec.name })))
   )
 )
+
+// Only show products that actually have a picture (local /images file or a
+// remote URL). The shop overview should display just these cards.
+const hasPicture = (p) => !!p.images && p.images !== '[]' && p.images !== ''
+
+// All Products overview → products with pictures only, mixed into one grid.
+const filteredGroupedProducts = computed(() => flatGroupedProducts.value.filter(hasPicture))
+
+// Count of picture-backed products shown on the All Products overview.
+const groupedTotal = computed(() => filteredGroupedProducts.value.length)
 
 const page = ref(1)
 const size = ref(12)
@@ -249,10 +253,6 @@ function onSizeChange() {
   fetchProducts()
 }
 
-function goToSub(subId) {
-  router.push({ path: '/products', query: { categoryId: subId } })
-}
-
 // Route to the correct data source based on the current mode.
 async function fetchAll() {
   if (isGrouped.value) await fetchGrouped()
@@ -301,6 +301,24 @@ async function fetchProducts() {
   color: var(--ink);
 }
 .shop-sub { color: var(--text-secondary); font-size: var(--font-md); margin-top: 4px; }
+
+/* Shop All section heading (All Products overview only) */
+.shop-all-head {
+  margin: 28px 0 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border-light);
+}
+.shop-all-title {
+  font-size: var(--font-2xl);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+.shop-all-sub {
+  margin-top: 4px;
+  color: var(--text-secondary);
+  font-size: var(--font-sm);
+}
 
 /* Toolbar */
 .toolbar {
@@ -368,41 +386,6 @@ async function fetchProducts() {
 }
 .clear-all:hover { color: var(--ink); }
 
-/* Grouped by sub-category */
-.category-sections { display: flex; flex-direction: column; gap: 36px; }
-.cat-section-title {
-  font-size: var(--font-2xl);
-  font-weight: 800;
-  color: var(--ink);
-  margin-bottom: 18px;
-  padding-bottom: 10px;
-  border-bottom: 2px solid var(--border-light);
-}
-.sub-section { margin-bottom: 28px; }
-.sub-header {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 14px;
-}
-.sub-title {
-  font-size: var(--font-lg);
-  font-weight: 700;
-  color: var(--ink);
-}
-.view-all {
-  border: none;
-  background: none;
-  color: var(--primary);
-  font-size: var(--font-sm);
-  font-weight: 700;
-  cursor: pointer;
-  font-family: inherit;
-  white-space: nowrap;
-}
-.view-all:hover { text-decoration: underline; }
-
 /* Skeleton cards */
 .skeleton-card {
   background: #fff;
@@ -424,6 +407,5 @@ async function fetchProducts() {
   .toolbar-select { width: 100%; }
   .toolbar-search { max-width: none; }
   .shop-title { font-size: var(--font-2xl); }
-  .sub-header { flex-direction: column; align-items: flex-start; gap: 4px; }
-}
+  }
 </style>
