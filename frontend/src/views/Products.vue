@@ -5,7 +5,12 @@
       <div>
         <h1 class="shop-title">{{ $t('products.title') }}</h1>
         <p class="shop-sub">
-          {{ loading ? $t('products.searching') : $t('products.countPlural', { count: total }) }}
+          <span v-if="loading || groupedLoading">{{ $t('products.searching') }}</span>
+          <span v-else-if="isGrouped">
+            {{ groupedTotal }} {{ groupedTotal === 1 ? 'product' : 'products' }}
+            across {{ groupedData.length }} {{ groupedData.length === 1 ? 'category' : 'categories' }}
+          </span>
+          <span v-else>{{ $t('products.countPlural', { count: total }) }}</span>
         </p>
       </div>
     </div>
@@ -56,62 +61,131 @@
       </div>
     </div>
 
-    <!-- Results -->
-    <div v-if="loading" class="product-grid">
-      <div v-for="n in 8" :key="n" class="skeleton-card">
-        <div class="loading-skeleton" style="padding-top:100%;border-radius:16px 16px 0 0" />
-        <div class="skeleton-body">
-          <div class="loading-skeleton" style="height:14px;width:85%" />
-          <div class="loading-skeleton" style="height:14px;width:55%" />
-          <div class="loading-skeleton" style="height:20px;width:40%;margin-top:8px" />
+    <!-- ============ GROUPED BY SUB-CATEGORY (All Products overview) ============ -->
+    <div v-if="isGrouped">
+      <div v-if="groupedLoading" class="product-grid">
+        <div v-for="n in 8" :key="n" class="skeleton-card">
+          <div class="loading-skeleton" style="padding-top:100%;border-radius:16px 16px 0 0" />
+          <div class="skeleton-body">
+            <div class="loading-skeleton" style="height:14px;width:85%" />
+            <div class="loading-skeleton" style="height:14px;width:55%" />
+            <div class="loading-skeleton" style="height:20px;width:40%;margin-top:8px" />
+          </div>
         </div>
+      </div>
+
+      <div v-else-if="groupedData.length" class="category-sections">
+        <section v-for="sec in groupedData" :key="sec.id" class="cat-section">
+          <h2 class="cat-section-title">{{ sec.name }}</h2>
+
+          <div v-for="sub in sec.subcategories" :key="sub.id" class="sub-section">
+            <div class="sub-header">
+              <h3 class="sub-title">{{ sub.name }}</h3>
+              <button class="view-all" @click="goToSub(sub.id)">View all →</button>
+            </div>
+            <div class="product-grid">
+              <ProductCard
+                v-for="p in sub.products"
+                :key="p.id"
+                :product="p"
+                :show-image="true"
+                :clickable="true"
+              />
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div v-else class="empty-state">
+        <div class="empty-icon"><el-icon><Search /></el-icon></div>
+        <p style="font-size:17px;font-weight:700;color:var(--ink)">{{ $t('products.noResults') }}</p>
       </div>
     </div>
 
-    <div v-else-if="products.length" class="product-grid">
-      <ProductCard v-for="p in products" :key="p.id" :product="p" />
-    </div>
+    <!-- ============ FLAT (search / category filter / sort) ============ -->
+    <div v-else>
+      <div v-if="loading" class="product-grid">
+        <div v-for="n in 8" :key="n" class="skeleton-card">
+          <div class="loading-skeleton" style="padding-top:100%;border-radius:16px 16px 0 0" />
+          <div class="skeleton-body">
+            <div class="loading-skeleton" style="height:14px;width:85%" />
+            <div class="loading-skeleton" style="height:14px;width:55%" />
+            <div class="loading-skeleton" style="height:20px;width:40%;margin-top:8px" />
+          </div>
+        </div>
+      </div>
 
-    <div v-else class="empty-state">
-      <div class="empty-icon"><el-icon><Search /></el-icon></div>
-      <p style="font-size:17px;font-weight:700;color:var(--ink)">{{ $t('products.noResults') }}</p>
-      <p style="margin-top:4px">{{ $t('products.noResultsSub') }}</p>
-      <button class="btn btn-outline btn-sm" style="margin-top:18px" @click="clearAll">
-        {{ $t('products.resetFilters') }}
-      </button>
-    </div>
+      <div v-else-if="displayProducts.length" class="product-grid">
+        <ProductCard
+          v-for="p in displayProducts"
+          :key="p.id"
+          :product="p"
+          :show-image="true"
+          :clickable="true"
+        />
+      </div>
 
-    <!-- Pagination -->
-    <div v-if="total > 0" class="pagination-wrap">
-      <el-pagination
-        v-model:current-page="page"
-        v-model:page-size="size"
-        :page-sizes="[12, 24, 48]"
-        :total="total"
-        layout="total, sizes, prev, pager, next, jumper"
-        background
-        @size-change="onSizeChange"
-        @current-change="fetchProducts"
-      />
+      <div v-else class="empty-state">
+        <div class="empty-icon"><el-icon><Search /></el-icon></div>
+        <p style="font-size:17px;font-weight:700;color:var(--ink)">{{ $t('products.noResults') }}</p>
+        <p style="margin-top:4px">{{ $t('products.noResultsSub') }}</p>
+        <button class="btn btn-outline btn-sm" style="margin-top:18px" @click="clearAll">
+          {{ $t('products.resetFilters') }}
+        </button>
+      </div>
+
+      <!-- Pagination -->
+      <div v-if="total > 0" class="pagination-wrap">
+        <el-pagination
+          v-model:current-page="page"
+          v-model:page-size="size"
+          :page-sizes="[12, 24, 48]"
+          :total="total"
+          layout="total, sizes, prev, pager, next, jumper"
+          background
+          @size-change="onSizeChange"
+          @current-change="fetchProducts"
+        />
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { productApi } from '@/api'
 import ProductCard from '@/components/ProductCard.vue'
 
 const { t } = useI18n()
 const route = useRoute()
+const router = useRouter()
+
 const products = ref([])
 const categories = ref([])
 const searchKeyword = ref('')
 const filterCategory = ref('')
 const sortBy = ref('newest')
 const loading = ref(false)
+
+// Grouped-by-sub-category state (All Products overview)
+const groupedData = ref([])
+const groupedLoading = ref(false)
+
+// Server-paginated products for the flat view (used by the grid).
+const displayProducts = computed(() => products.value)
+
+// All Products overview (no filter, no search) → grouped by sub-category.
+const isGrouped = computed(() => !filterCategory.value && !searchKeyword.value)
+
+// Total products shown across the grouped sections.
+const groupedTotal = computed(() =>
+  groupedData.value.reduce(
+    (sum, sec) => sum + sec.subcategories.reduce((a, sub) => a + sub.products.length, 0),
+    0
+  )
+)
 
 const page = ref(1)
 const size = ref(12)
@@ -123,7 +197,7 @@ onMounted(async () => {
 
   if (route.query.categoryId) filterCategory.value = Number(route.query.categoryId)
   if (route.query.keyword) searchKeyword.value = route.query.keyword
-  await fetchProducts()
+  await fetchAll()
 })
 
 const activeFilters = computed(() => {
@@ -167,7 +241,7 @@ function clearAll() {
 
 function resetAndFetch() {
   page.value = 1
-  fetchProducts()
+  fetchAll()
 }
 
 function onSizeChange() {
@@ -175,8 +249,31 @@ function onSizeChange() {
   fetchProducts()
 }
 
+function goToSub(subId) {
+  router.push({ path: '/products', query: { categoryId: subId } })
+}
+
+// Route to the correct data source based on the current mode.
+async function fetchAll() {
+  if (isGrouped.value) await fetchGrouped()
+  else await fetchProducts()
+}
+
+async function fetchGrouped() {
+  groupedLoading.value = true
+  try {
+    const res = await productApi.grouped()
+    groupedData.value = res.data || []
+  } catch {
+    groupedData.value = []
+  } finally {
+    groupedLoading.value = false
+  }
+}
+
 async function fetchProducts() {
   loading.value = true
+
   const params = { page: page.value, size: size.value }
   if (searchKeyword.value) params.keyword = searchKeyword.value
   if (filterCategory.value) params.categoryId = filterCategory.value
@@ -271,6 +368,41 @@ async function fetchProducts() {
 }
 .clear-all:hover { color: var(--ink); }
 
+/* Grouped by sub-category */
+.category-sections { display: flex; flex-direction: column; gap: 36px; }
+.cat-section-title {
+  font-size: var(--font-2xl);
+  font-weight: 800;
+  color: var(--ink);
+  margin-bottom: 18px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--border-light);
+}
+.sub-section { margin-bottom: 28px; }
+.sub-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.sub-title {
+  font-size: var(--font-lg);
+  font-weight: 700;
+  color: var(--ink);
+}
+.view-all {
+  border: none;
+  background: none;
+  color: var(--primary);
+  font-size: var(--font-sm);
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+}
+.view-all:hover { text-decoration: underline; }
+
 /* Skeleton cards */
 .skeleton-card {
   background: #fff;
@@ -292,5 +424,6 @@ async function fetchProducts() {
   .toolbar-select { width: 100%; }
   .toolbar-search { max-width: none; }
   .shop-title { font-size: var(--font-2xl); }
+  .sub-header { flex-direction: column; align-items: flex-start; gap: 4px; }
 }
 </style>

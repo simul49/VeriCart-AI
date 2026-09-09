@@ -1,10 +1,25 @@
 <template>
   <div class="page-container">
-    <div class="product-detail-layout" v-if="product">
+    <div v-if="loading" class="pd-state">Loading product…</div>
+    <div v-else-if="!product" class="pd-state">Product not found.</div>
+    <div class="product-detail-layout" v-else>
       <!-- Gallery -->
       <div class="product-gallery">
-        <img :src="mainImage" :alt="product.name" class="main-image" />
-        <div class="thumb-list" v-if="imageList.length > 1">
+        <img v-if="galleryTab === 'gallery'" :src="mainImage" :alt="product.name" class="main-image" />
+        <div v-else class="mini-specs">
+          <div v-for="(val, key) in productSpecs" :key="key" class="mini-spec-row">
+            <span class="mini-spec-key">{{ key }}</span>
+            <span class="mini-spec-val">{{ val }}</span>
+          </div>
+          <p v-if="!Object.keys(productSpecs).length" class="mini-spec-empty">No specifications available</p>
+        </div>
+
+        <div class="gallery-tabs">
+          <button :class="['gtab', { active: galleryTab === 'gallery' }]" @click="galleryTab = 'gallery'">Gallery</button>
+          <button :class="['gtab', { active: galleryTab === 'params' }]" @click="galleryTab = 'params'">Parameters</button>
+        </div>
+
+        <div class="thumb-list" v-if="galleryTab === 'gallery' && imageList.length > 1">
           <img
             v-for="(img, i) in imageList"
             :key="i"
@@ -25,8 +40,8 @@
         <!-- Price Section -->
         <div class="product-price-section">
           <div style="display:flex;align-items:baseline;flex-wrap:wrap;gap:8px">
-            <span class="current-price">${{ product.price }}</span>
-            <span class="original-price" v-if="product.originalPrice">${{ product.originalPrice }}</span>
+            <span class="current-price">¥{{ product.price }}</span>
+            <span class="original-price" v-if="product.originalPrice">¥{{ product.originalPrice }}</span>
             <span class="discount-tag" v-if="product.originalPrice && product.originalPrice > product.price">
               -{{ Math.round((1 - product.price / product.originalPrice) * 100) }}% OFF
             </span>
@@ -60,10 +75,31 @@
         </div>
 
         <!-- Quantity -->
-        <div style="display:flex;align-items:center;gap:12px;margin:20px 0">
-          <span style="font-weight:600;font-size:var(--font-sm)">Quantity:</span>
-          <el-input-number v-model="quantity" :min="1" :max="Math.min(product.stock || 99, 99)" size="large" />
-          <span style="font-size:var(--font-xs);color:var(--text-muted)">({{ product.stock || 0 }} available)</span>
+        <div class="pd-qty">
+          <span class="pd-qty-label">Quantity:</span>
+          <div class="pd-qty-stepper">
+            <button type="button" class="pd-qty-btn" :disabled="quantity <= 1" @click="quantity = Math.max(1, quantity - 1)" aria-label="Decrease">−</button>
+            <input type="number" class="pd-qty-input" v-model.number="quantity" :min="1" :max="maxQty" @blur="quantity = Math.min(Math.max(1, quantity || 1), maxQty)" />
+            <button type="button" class="pd-qty-btn" :disabled="quantity >= maxQty" @click="quantity = Math.min(maxQty, quantity + 1)" aria-label="Increase">+</button>
+          </div>
+          <span class="pd-qty-avail">({{ product.stock || 0 }} available)</span>
+        </div>
+
+        <!-- Variants -->
+        <div v-if="variantGroups.length" class="pd-variants">
+          <div v-for="g in variantGroups" :key="g.name" class="pd-vgroup">
+            <span class="pd-vname">{{ g.name }}</span>
+            <div class="pd-vopts">
+              <button
+                v-for="opt in g.options"
+                :key="opt"
+                type="button"
+                :class="['pd-vchip', { active: selectedVariants[g.name] === opt }]"
+                @click="selectedVariants[g.name] = opt"
+              >{{ opt }}</button>
+            </div>
+          </div>
+          <div class="pd-vselected" v-if="variantSummary">Selected: {{ variantSummary }}</div>
         </div>
 
         <!-- Actions -->
@@ -74,17 +110,27 @@
           <button class="add-cart-btn" @click="handleAddCart" :disabled="!product.stock">
             🛒 Add to Cart
           </button>
-          <button class="msg-btn" @click="openMessageDialog">
-            <el-icon><ChatDotRound /></el-icon> Message Seller
-          </button>
-        </div>
-
-        <!-- Wishlist & Share -->
-        <div style="display:flex;gap:16px;margin-top:16px">
-          <el-button text @click="handleWishlist">
-            {{ isWishlisted ? '❤️ Saved' : '🤍 Wishlist' }}
-          </el-button>
-          <el-button text @click="handleShare">📤 Share</el-button>
+          <div class="action-secondary">
+            <button class="msg-btn" @click="openMessageDialog">
+              <el-icon><ChatDotRound /></el-icon> Message Seller
+            </button>
+            <button
+              v-if="product?.externalUrl"
+              class="msg-btn"
+              @click="openTaobao"
+              style="background:linear-gradient(135deg,#ff5000,#ff2d00);color:#fff;border:none"
+            >
+              <el-icon><Link /></el-icon> View on Taobao
+            </button>
+            <button class="action-pill" @click="handleWishlist">
+              <span class="action-pill-icon">{{ isWishlisted ? '❤️' : '🤍' }}</span>
+              {{ isWishlisted ? 'Saved' : 'Wishlist' }}
+            </button>
+            <button class="action-pill" @click="handleShare">
+              <span class="action-pill-icon">📤</span>
+              Share
+            </button>
+          </div>
         </div>
       </div>
 
@@ -99,81 +145,136 @@
               <div style="font-size:var(--font-xs);color:var(--text-muted)">Official Store</div>
             </div>
           </div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <span style="font-size:var(--font-xs);background:#F5F5F5;padding:4px 10px;border-radius:12px">Verified</span>
-            <span style="font-size:var(--font-xs);background:#F5F5F5;padding:4px 10px;border-radius:12px">Fast Delivery</span>
+          <div class="seller-pills">
+            <span class="seller-pill seller-pill--ok">Verified</span>
+            <span class="seller-pill">Fast Delivery</span>
           </div>
         </div>
 
-        <!-- Trust Score Sidebar -->
-        <div style="background:white;border-radius:var(--radius-lg);padding:20px;border:1px solid var(--border-light);margin-bottom:16px" v-if="product.trustScore">
-          <h4 style="font-weight:700;margin-bottom:12px;font-size:var(--font-sm);text-transform:uppercase;color:var(--text-muted)">Trust Score</h4>
-          <div :class="['trust-badge-large', trustClass]" style="padding:20px">
-            <span class="score">{{ product.trustScore }}</span>
-            <span class="label">/ 100 — {{ product.trustLevel || 'Not Rated' }}</span>
+        <!-- Ask AI About This Product (in sidebar, under the store card) -->
+        <div class="sidebar-card ask-ai-sidebar-card">
+          <div class="ask-ai-head">
+            <span class="ask-ai-icon" aria-hidden="true">💬</span>
+            <div>
+              <div class="ask-ai-title">Ask AI About This Product</div>
+              <div class="ask-ai-sub">Get instant answers, powered by AI</div>
+            </div>
           </div>
-          <div style="margin-top:12px;font-size:var(--font-xs);color:var(--text-secondary)">
-            <p v-if="product.fakeReviewCount > 0" style="color:var(--danger)">
-              ⚠️ {{ product.fakeReviewCount }} suspicious review(s)
-            </p>
-            <p v-else style="color:var(--success)">✅ Clean review history</p>
+          <button class="buy-now-btn ask-ai-sidebar-btn" @click="showProductChat = !showProductChat">
+            {{ showProductChat ? 'Hide Chat' : 'Ask Question' }}
+          </button>
+          <ChatPanel
+            v-if="showProductChat"
+            :productId="product?.id"
+            style="margin-top:14px;border:1px solid var(--border-light);border-radius:12px;overflow:hidden"
+          />
+        </div>
+
+        </div>
+    </div>
+
+    <!-- Trust Analysis & Score: combined into one card -->
+    <!-- Trust Analysis & Score + Trusted Rating: ONE card, two parts -->
+    <div class="ai-card trust-combined-card" v-if="product?.trustScore" style="margin-bottom:24px">
+      <h3>🛡️ Trust Analysis & Rating</h3>
+      <div class="trust-combined-body">
+        <!-- LEFT: Trust Analysis & Score -->
+        <div class="trust-combined-left">
+          <div class="trust-card-body">
+            <div :class="['trust-score-gauge', trustClass]">
+              <svg viewBox="0 0 120 120" class="gauge-svg" aria-hidden="true">
+                <circle cx="60" cy="60" r="50" class="gauge-track" />
+                <circle
+                  cx="60" cy="60" r="50"
+                  class="gauge-fill"
+                  :stroke-dasharray="314.159"
+                  :stroke-dashoffset="314.159 * (1 - product.trustScore / 100)"
+                />
+              </svg>
+              <div class="gauge-text">
+                <span class="gauge-value">{{ product.trustScore }}</span>
+                <span class="gauge-label">/ 100</span>
+              </div>
+            </div>
+
+            <div class="trust-card-info">
+              <div class="trust-card-head">
+                <div :class="['trust-score-level', trustClass]">
+                  {{ product.trustLevel || 'Not Rated' }}
+                </div>
+                <p v-if="product.fakeReviewCount > 0" style="color:var(--danger);margin:0 0 8px">
+                  ⚠️ {{ product.fakeReviewCount }} suspicious review(s) detected
+                </p>
+                <p v-else style="color:var(--success);margin:0 0 8px">✅ No suspicious reviews detected</p>
+              </div>
+
+              <ul class="trust-score-factors">
+                <li>
+                  <span class="factor-dot ok"></span>
+                  Average rating
+                  <strong>{{ product.rating?.toFixed(1) || 'N/A' }}</strong>
+                </li>
+                <li>
+                  <span class="factor-dot ok"></span>
+                  Total reviews
+                  <strong>{{ product.reviewCount }}</strong>
+                </li>
+                <li :class="{ warn: product.fakeReviewCount > 0 }">
+                  <span class="factor-dot"></span>
+                  Suspicious reviews
+                  <strong>{{ product.fakeReviewCount || 0 }}</strong>
+                </li>
+                <li>
+                  <span class="factor-dot ok"></span>
+                  Verified-purchase protection
+                  <strong>Enabled</strong>
+                </li>
+              </ul>
+
+              <p class="trust-score-note">
+                Score is calculated from review authenticity, average rating, and seller history.
+              </p>
+
+              <el-button size="small" type="primary" text @click="analyzeProduct" :loading="analyzing">
+                🔄 Refresh Analysis
+              </el-button>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: Trusted Rating (raw vs AI-adjusted) -->
+        <div class="trust-combined-right" v-if="trustMetrics && trustMetrics.totalReviews > 0">
+          <h4 class="trust-combined-right-title">⚖️ Trusted Rating</h4>
+          <p class="trust-combined-right-desc">
+            AI removes suspicious reviews, then recalculates the honest score.
+          </p>
+          <div class="trusted-rating-row">
+            <div class="rating-box">
+              <span class="rating-box-label">Raw rating</span>
+              <span class="rating-box-value muted">{{ trustMetrics.rawRating?.toFixed(1) }}</span>
+              <span class="rating-box-sub">{{ trustMetrics.totalReviews }} reviews</span>
+            </div>
+            <span class="rating-arrow">→</span>
+            <div class="rating-box highlight">
+              <span class="rating-box-label">Trusted rating</span>
+              <span class="rating-box-value">{{ trustMetrics.trustedRating?.toFixed(1) }}</span>
+              <span class="rating-box-sub">
+                {{ trustMetrics.flaggedReviews }} suspicious removed
+              </span>
+            </div>
+            <div v-if="trustMetrics.ratingDelta > 0.05" class="rating-delta warn">
+              ↓ {{ trustMetrics.ratingDelta?.toFixed(2) }} after removing fake reviews
+            </div>
+            <div v-else class="rating-delta ok">✓ No inflation detected</div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- AI Analysis Section -->
-    <div style="margin:32px 0;display:grid;grid-template-columns:1fr 1fr;gap:24px">
-      <div class="ai-card" v-if="product?.trustScore">
-        <h3>🛡️ Trust Analysis</h3>
-        <div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap">
-          <div :class="['trust-badge-large', trustClass]" style="padding:20px 32px">
-            <span class="score">{{ product.trustScore }}</span>
-            <span class="label">/ 100 — {{ product.trustLevel || 'Not Rated' }}</span>
-          </div>
-          <div style="flex:1;min-width:200px">
-            <p v-if="product.fakeReviewCount > 0" style="color:var(--danger);margin-bottom:6px">
-              ⚠️ {{ product.fakeReviewCount }} suspicious review(s) detected
-            </p>
-            <p v-else style="color:var(--success);margin-bottom:6px">✅ No suspicious reviews detected</p>
-            <el-button size="small" type="primary" text @click="analyzeProduct" :loading="analyzing">
-              🔄 Refresh Analysis
-            </el-button>
-          </div>
-        </div>
-      </div>
-
-      <div class="ai-card" v-if="product?.aiSummary">
-        <h3>🤖 AI Review Summary</h3>
-        <div v-html="renderedSummary" style="line-height:1.8;font-size:var(--font-sm);color:var(--text-secondary)"></div>
-      </div>
-    </div>
-
-    <!-- Trusted Rating: raw vs AI-adjusted -->
-    <div class="ai-card" v-if="trustMetrics && trustMetrics.totalReviews > 0" style="margin-bottom:24px">
-      <h3>⚖️ Trusted Rating</h3>
-      <p style="font-size:var(--font-xs);color:var(--text-muted);margin-bottom:16px">
-        AI removes suspicious reviews, then recalculates the honest score.
-      </p>
-      <div class="trusted-rating-row">
-        <div class="rating-box">
-          <span class="rating-box-label">Raw rating</span>
-          <span class="rating-box-value muted">{{ trustMetrics.rawRating?.toFixed(1) }}</span>
-          <span class="rating-box-sub">{{ trustMetrics.totalReviews }} reviews</span>
-        </div>
-        <span class="rating-arrow">→</span>
-        <div class="rating-box highlight">
-          <span class="rating-box-label">Trusted rating</span>
-          <span class="rating-box-value">{{ trustMetrics.trustedRating?.toFixed(1) }}</span>
-          <span class="rating-box-sub">
-            {{ trustMetrics.flaggedReviews }} suspicious removed
-          </span>
-        </div>
-        <div v-if="trustMetrics.ratingDelta > 0.05" class="rating-delta warn">
-          ↓ {{ trustMetrics.ratingDelta?.toFixed(2) }} after removing fake reviews
-        </div>
-        <div v-else class="rating-delta ok">✓ No inflation detected</div>
-      </div>
+    <!-- AI Review Summary (full-width, only when present) -->
+    <div class="ai-card" v-if="product?.aiSummary" style="margin-bottom:24px">
+      <h3>🤖 AI Review Summary</h3>
+      <div v-html="renderedSummary" style="line-height:1.8;font-size:var(--font-sm);color:var(--text-secondary)"></div>
     </div>
 
     <!-- Explainable Trust Score (FR-045) -->
@@ -186,21 +287,22 @@
       <TopicSentimentChart :topics="topics" />
     </div>
 
-    <!-- Ask AI -->
-    <div class="ai-card" style="margin-bottom:32px">
-      <div style="display:flex;align-items:center;justify-content:space-between">
-        <h3 style="margin:0">💬 Ask AI About This Product</h3>
-        <el-button type="primary" size="small" @click="showProductChat = !showProductChat">
-          {{ showProductChat ? 'Hide Chat' : 'Ask Question' }}
-        </el-button>
-      </div>
-      <ChatPanel
-        v-if="showProductChat"
-        :productId="product?.id"
-        style="margin-top:16px;border:1px solid var(--border);border-radius:12px;overflow:hidden"
-      />
-    </div>
+    <!-- Ask AI is now in the Trust Analysis row above -->
 
+    <!-- Taobao-style detail tabs -->
+    <div class="detail-tabs" v-if="product">
+      <div class="detail-tabbar">
+        <button :class="['dtab', { active: contentTab === 'reviews' }]" @click="contentTab = 'reviews'">
+          Customer Reviews ({{ reviews.length }})
+        </button>
+        <button :class="['dtab', { active: contentTab === 'specs' }]" @click="contentTab = 'specs'">Specifications</button>
+        <button :class="['dtab', { active: contentTab === 'details' }]" @click="contentTab = 'details'">Details</button>
+        <button :class="['dtab', { active: contentTab === 'store' }]" @click="contentTab = 'store'">Store Picks</button>
+        <button :class="['dtab', { active: contentTab === 'also' }]" @click="contentTab = 'also'">Also Viewed</button>
+      </div>
+
+      <!-- Reviews panel -->
+      <div v-show="contentTab === 'reviews'" class="dtab-panel">
     <!-- Customer Reviews -->
     <div class="reviews-head">
       <h3>Customer Reviews ({{ reviews.length }})</h3>
@@ -292,15 +394,53 @@
       <p style="font-size:36px;margin-bottom:8px">📝</p>
       <p style="font-weight:600;color:var(--text)">No reviews yet</p>
       <p style="margin-top:4px">Be the first to review this product</p>
-    </div>
-
-    <!-- Related Products -->
-    <div v-if="relatedProducts.length" style="margin-top:48px">
-      <h3 style="font-size:20px;font-weight:700;margin-bottom:16px">You May Also Like</h3>
-      <div class="product-grid">
-        <ProductCard v-for="p in relatedProducts" :key="p.id" :product="p" />
       </div>
-    </div>
+      </div><!-- /reviews panel -->
+
+      <!-- Specifications -->
+      <div v-show="contentTab === 'specs'" class="dtab-panel">
+        <h3 class="dtab-title">Specifications</h3>
+        <div class="spec-table">
+          <div v-for="(val, key) in productSpecs" :key="key" class="spec-row">
+            <span class="spec-key">{{ key }}</span>
+            <span class="spec-val">{{ val }}</span>
+          </div>
+          <p v-if="!Object.keys(productSpecs).length" class="empty-text">No specifications available</p>
+        </div>
+      </div>
+
+      <!-- Details -->
+      <div v-show="contentTab === 'details'" class="dtab-panel">
+        <h3 class="dtab-title">Product Details</h3>
+        <div v-if="product.description" class="detail-block">
+          <h4>Description</h4>
+          <p class="detail-desc">{{ product.description }}</p>
+        </div>
+        <div v-if="product.aiSummary" class="detail-block">
+          <h4>AI Review Summary</h4>
+          <div v-html="renderedSummary" class="detail-ai"></div>
+        </div>
+        <p v-if="!product.description && !product.aiSummary" class="empty-text">No details available</p>
+      </div>
+
+      <!-- Store Picks -->
+      <div v-show="contentTab === 'store'" class="dtab-panel">
+        <h3 class="dtab-title">Store Picks</h3>
+        <div class="product-grid">
+          <ProductCard v-for="p in storeProducts" :key="p.id" :product="p" />
+        </div>
+        <p v-if="!storeProducts.length" class="empty-text">No recommendations available</p>
+      </div>
+
+      <!-- Also Viewed -->
+      <div v-show="contentTab === 'also'" class="dtab-panel">
+        <h3 class="dtab-title">Also Viewed</h3>
+        <div class="product-grid">
+          <ProductCard v-for="p in relatedProducts" :key="p.id" :product="p" />
+        </div>
+        <p v-if="!relatedProducts.length" class="empty-text">No products found</p>
+      </div>
+    </div><!-- /detail-tabs -->
 
     <!-- Message Seller dialog -->
     <el-dialog v-model="msgDialogVisible" width="540px" class="msg-dialog" align-center>
@@ -354,11 +494,12 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { productApi, reviewApi, aiApi, wishlistApi, messageApi } from '@/api'
 import { useAuthStore } from '@/stores/auth'
 import { useCartStore } from '@/stores/cart'
+import { parseVariants, selectionSummary } from '@/utils/variants'
 import { marked } from 'marked'
 import StarRating from '@/components/StarRating.vue'
 import ChatPanel from '@/components/ChatPanel.vue'
@@ -374,9 +515,23 @@ const auth = useAuthStore()
 const cartStore = useCartStore()
 
 const product = ref(null)
+const loading = ref(true)
+
+const variantGroups = computed(() => parseVariants(product.value))
+const selectedVariants = reactive({})
+watch(() => product.value, (p) => {
+  parseVariants(p).forEach(g => {
+    if (g.options?.length && !selectedVariants[g.name]) selectedVariants[g.name] = g.options[0]
+  })
+}, { immediate: true })
+const variantSummary = computed(() => selectionSummary(selectedVariants))
+const maxQty = computed(() => Math.min(product.value?.stock || 99, 99))
 const reviews = ref([])
 const categories = ref([])
 const relatedProducts = ref([])
+const storeProducts = ref([])
+const galleryTab = ref('gallery')
+const contentTab = ref('reviews')
 const selectedImage = ref(0)
 const quantity = ref(1)
 const analyzing = ref(false)
@@ -422,6 +577,22 @@ const categoryName = computed(() => {
   return cat?.name || ''
 })
 
+const productSpecs = computed(() => {
+  const p = product.value
+  if (!p) return {}
+  const map = {}
+  if (p.brand) map['Brand'] = p.brand
+  if (categoryName.value) map['Category'] = categoryName.value
+  if (p.price != null) map['Price'] = '¥' + p.price
+  if (p.stock != null) map['Stock'] = p.stock
+  if (p.rating != null) map['Rating'] = (p.rating?.toFixed?.(1) || p.rating) + ' / 5'
+  if (p.reviewCount != null) map['Reviews'] = p.reviewCount
+  if (p.trustScore != null) map['Trust Score'] = p.trustScore + '/100 · ' + (p.trustLevel || '')
+  if (p.soldCount != null) map['Sold'] = p.soldCount + '+'
+  if (p.specs) Object.assign(map, parseSpecs(p.specs))
+  return map
+})
+
 const trustClass = computed(() => {
   const s = product.value?.trustScore
   if (!s) return ''
@@ -449,8 +620,10 @@ onMounted(async () => {
 
     // Fetch related products
     if (prod.data?.categoryId) {
-      const rel = await productApi.list({ categoryId: prod.data.categoryId, limit: 6 })
-      relatedProducts.value = (rel.data || []).filter(p => p.id != prod.data.id).slice(0, 4)
+      const rel = await productApi.list({ categoryId: prod.data.categoryId, limit: 12 })
+      const others = (rel.data || []).filter(p => p.id != prod.data.id)
+      relatedProducts.value = others.slice(0, 4)
+      storeProducts.value = others.slice(0, 8)
     }
 
     // Check wishlist
@@ -463,6 +636,7 @@ onMounted(async () => {
 
     await loadTrustData()
   } catch (e) { /* handled */ }
+  finally { loading.value = false }
 })
 
 /** Loads trusted-rating metrics + the signed-in user's own review for this product. */
@@ -493,6 +667,10 @@ async function handleAddCart() {
     await cartStore.addToCart(product.value.id, quantity.value)
     ElMessage.success('Added to cart!')
   } catch (e) { ElMessage.error('Failed to add to cart') }
+}
+
+function openTaobao() {
+  if (product.value?.externalUrl) window.open(product.value.externalUrl, '_blank', 'noopener')
 }
 
 async function handleBuyNow() {
@@ -881,6 +1059,690 @@ function sentimentColor(s) {
   gap: 6px;
   margin-top: 10px;
   font-size: 11px;
+  color: var(--text-muted, #94A3B8);
+}
+
+/* Product variant / SKU selectors */
+.pd-variants {
+  margin: 18px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.pd-vgroup {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.pd-vname {
+  min-width: 64px;
+  font-size: var(--font-sm, 14px);
+  font-weight: 600;
+  color: var(--text-muted, #64748B);
+  padding-top: 6px;
+}
+.pd-vopts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.pd-vchip {
+  border: 1px solid var(--border, #E2E8F0);
+  background: #fff;
+  color: var(--text, #333);
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-size: var(--font-sm, 14px);
+  cursor: pointer;
+  transition: all .15s ease;
+}
+.pd-vchip:hover {
+  border-color: var(--primary, #FF4D3D);
+  color: var(--primary, #FF4D3D);
+}
+.pd-vchip.active {
+  border-color: var(--primary, #FF4D3D);
+  color: var(--primary, #FF4D3D);
+  background: var(--primary-light, #FFF1EE);
+  font-weight: 700;
+}
+.pd-vselected {
+  font-size: var(--font-sm, 14px);
+  color: var(--text-muted, #64748B);
+  padding: 8px 12px;
+  background: var(--bg-soft, #F8FAFC);
+  border-radius: 8px;
+}
+
+/* Gallery mini-tabs (Gallery / Parameters) */
+.gallery-tabs {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+.gtab {
+  flex: 1;
+  padding: 8px 0;
+  border: 1px solid var(--border-light, #ebeef5);
+  background: #fff;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary, #606266);
+  cursor: pointer;
+  font-family: inherit;
+  transition: all .15s ease;
+}
+.gtab:hover {
+  border-color: var(--primary, #FF4D3D);
+  color: var(--primary, #FF4D3D);
+}
+.gtab.active {
+  border-color: var(--primary, #FF4D3D);
+  color: #fff;
+  background: var(--primary, #FF4D3D);
+}
+.mini-specs {
+  padding: 16px;
+  border: 1px solid var(--border-light, #ebeef5);
+  border-radius: var(--radius-lg, 12px);
+}
+.mini-spec-row {
+  display: flex;
+  font-size: 13px;
+  padding: 7px 0;
+  border-bottom: 1px dashed var(--border-light, #ebeef5);
+}
+.mini-spec-key { color: var(--text-muted, #64748B); min-width: 120px; }
+.mini-spec-val { color: var(--text, #333); }
+.mini-spec-empty { color: var(--text-muted); font-size: 13px; }
+
+/* Detail tab bar (Customer Reviews / Specifications / Details / Store Picks / Also Viewed) */
+.detail-tabs { margin-top: 24px; }
+.detail-tabbar {
+  display: flex;
+  gap: 4px;
+  border-bottom: 2px solid var(--border-light, #ebeef5);
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 20;
+  padding-top: 8px;
+  flex-wrap: wrap;
+}
+.dtab {
+  padding: 12px 18px;
+  border: none;
+  background: none;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-secondary, #606266);
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  font-family: inherit;
+}
+.dtab:hover { color: var(--primary, #FF4D3D); }
+.dtab.active {
+  color: var(--primary, #FF4D3D);
+  border-bottom-color: var(--primary, #FF4D3D);
+}
+.dtab-panel { padding-top: 24px; }
+.dtab-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 16px;
+  color: var(--text, #303133);
+}
+.spec-table {
+  border: 1px solid var(--border-light, #ebeef5);
+  border-radius: var(--radius-lg, 12px);
+  overflow: hidden;
+}
+.spec-row {
+  display: flex;
+  font-size: 14px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-light, #ebeef5);
+}
+.spec-row:last-child { border-bottom: none; }
+.spec-key {
+  color: var(--text-muted, #64748B);
+  min-width: 160px;
+  font-weight: 600;
+}
+.spec-val { color: var(--text, #333); }
+.detail-block { margin-bottom: 24px; }
+.detail-block h4 {
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0 0 8px;
+  color: var(--text, #303133);
+}
+.detail-desc {
+  line-height: 1.7;
+  color: var(--text-secondary, #606266);
+  font-size: 14px;
+}
+.detail-ai { line-height: 1.8; color: var(--text-secondary, #606266); font-size: 14px; }
+.empty-text { color: var(--text-muted, #9ca3af); font-size: 14px; padding: 12px 0; }
+
+/* Loading / not-found states */
+.pd-state {
+  padding: 80px 20px;
+  text-align: center;
+  font-size: 16px;
+  color: var(--text-muted, #9ca3af);
+}
+
+/* ============================================================
+   Product detail polish — match the example design
+   ============================================================ */
+
+/* Stack action buttons vertically, full width (Buy Now / Add to Cart / Message Seller) */
+.product-actions {
+  /* Keep it a flex row; Buy Now + Add to Cart share one line, Message Seller wraps below. */
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: stretch;
+}
+.product-actions .buy-now-btn,
+.product-actions .add-cart-btn {
+  /* Equal-width side-by-side on one row, compact to match the secondary pill row below */
+  flex: 1 1 0;
+  min-width: 0;
+  height: 44px;
+  font-size: 14px;
+  padding: 0 16px;
+}
+.product-actions .action-secondary {
+  /* Row beneath Buy Now / Add to Cart: Message Seller + Wishlist + Share together */
+  flex: 1 1 100%;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 8px;
+}
+.product-actions .action-secondary .msg-btn,
+.product-actions .action-secondary .action-pill {
+  /* Same compact, equal-width pill so all 3 buttons feel consistent and always share one line */
+  flex: 1 1 0;
+  min-width: 0;
+  height: 44px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.product-actions .action-secondary .action-pill {
+  background: #ffffff;
+  color: var(--text, #303133);
+  border: 1px solid var(--border-light, #ebeef5);
+}
+.product-actions .action-secondary .action-pill:hover {
+  background: #fff8f5;
+  border-color: var(--primary, #FF4D3D);
+  color: var(--primary, #FF4D3D);
+}
+.action-pill-icon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+/* Trust Analysis & Score combined card (two-part: LEFT analysis | RIGHT trusted rating) */
+.trust-combined-card {
+  padding: 24px 26px;
+}
+.trust-combined-card h3 {
+  font-size: var(--font-xl, 18px);
+  margin-bottom: 18px;
+}
+.trust-combined-body {
+  display: flex;
+  gap: 32px;
+  flex-wrap: wrap;
+  align-items: stretch;
+}
+.trust-combined-left {
+  flex: 1 1 340px;
+  min-width: 300px;
+}
+.trust-combined-right {
+  flex: 1 1 300px;
+  min-width: 280px;
+  padding-left: 32px;
+  border-left: 1px solid var(--border-light, #ebeef5);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.trust-combined-right-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text, #303133);
+  margin: 0 0 6px;
+}
+.trust-combined-right-desc {
+  font-size: var(--font-xs, 12px);
+  color: var(--text-muted, #9ca3af);
+  margin: 0 0 18px;
+}
+.trust-card-body {
+  display: flex;
+  align-items: center;
+  gap: 36px;
+  flex-wrap: wrap;
+}
+.trust-card-info {
+  flex: 1;
+  min-width: 240px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.trust-card-head {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.trust-card-head .trust-score-level {
+  align-self: flex-start;
+  margin-bottom: 0;
+}
+.trust-card-head p { margin: 0; }
+
+/* In the right column the rating compare stacks vertically for clarity */
+.trust-combined-right .trusted-rating-row {
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.trust-combined-right .rating-arrow {
+  align-self: center;
+  transform: rotate(90deg);
+  font-size: 18px;
+  margin: -2px 0;
+}
+
+/* Compact Raw / Trusted rating boxes in the right column */
+.trust-combined-right .rating-box {
+  flex: 0 0 auto;
+  align-self: center;
+  width: 100%;
+  max-width: 240px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #ffffff 0%, #fafafa 100%);
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+  gap: 1px;
+}
+.trust-combined-right .rating-box.highlight {
+  background: linear-gradient(180deg, #f0fdf4 0%, #ecfdf5 100%);
+  border-color: #a7f3d0;
+  box-shadow: 0 1px 2px rgba(16, 185, 129, 0.08);
+}
+.trust-combined-right .rating-box-label {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+.trust-combined-right .rating-box-value {
+  font-size: 24px;
+  margin: 2px 0 1px;
+  line-height: 1.1;
+}
+.trust-combined-right .rating-box-sub {
+  font-size: 10px;
+}
+
+/* Compact verdict pill in right column */
+.trust-combined-right .rating-delta {
+  font-size: 12px;
+  padding: 6px 12px;
+  margin-top: 2px;
+}
+
+/* Polished card header + nicer background */
+.trust-combined-card {
+  background: linear-gradient(180deg, #fff8f5 0%, #fff5f0 100%) !important;
+  border: 1px solid #fde2d6 !important;
+  box-shadow: 0 2px 8px rgba(255, 77, 61, 0.04);
+}
+.trust-combined-card h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 17px;
+  letter-spacing: -0.01em;
+}
+
+/* Polished gauge container */
+.trust-combined-left .trust-score-gauge {
+  width: 132px;
+  height: 132px;
+  padding: 6px;
+  background: linear-gradient(180deg, #ffffff 0%, #fff8f5 100%);
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(16, 24, 40, 0.05), inset 0 0 0 1px rgba(255, 77, 61, 0.06);
+}
+.trust-combined-left .trust-score-gauge .gauge-svg { width: 100%; height: 100%; }
+
+/* Ask AI sidebar card (under the Store card) */
+.sidebar-card {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  margin-bottom: 16px;
+  border: 1px solid var(--border-light);
+}
+.ask-ai-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.ask-ai-icon {
+  font-size: 22px;
+  line-height: 1;
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #fff7f4, #ffe8e0);
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+.ask-ai-title {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text);
+  line-height: 1.3;
+}
+.ask-ai-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+.ask-ai-sidebar-btn {
+  width: 100%;
+  height: 48px;
+  font-size: 14px;
+}
+
+/* Professional Trust Score card under the AI row */
+.trust-card { padding: 24px 26px; }
+.trust-card-body {
+  display: flex;
+  align-items: center;
+  gap: 36px;
+  flex-wrap: wrap;
+}
+.trust-score-gauge {
+  position: relative;
+  width: 140px;
+  height: 140px;
+  flex-shrink: 0;
+}
+.gauge-svg {
+  transform: rotate(-90deg);
+  width: 100%;
+  height: 100%;
+}
+.gauge-track {
+  fill: none;
+  stroke: #e5e7eb;
+  stroke-width: 10;
+}
+.gauge-fill {
+  fill: none;
+  stroke-width: 10;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.6s ease;
+}
+.trust-score-gauge.trust-excellent .gauge-fill { stroke: #10b981; }
+.trust-score-gauge.trust-high .gauge-fill { stroke: #84cc16; }
+.trust-score-gauge.trust-medium .gauge-fill { stroke: #f59e0b; }
+.trust-score-gauge:not(.trust-excellent):not(.trust-high):not(.trust-medium) .gauge-fill { stroke: #ef4444; }
+.gauge-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.gauge-value {
+  font-size: 38px;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1;
+}
+.gauge-label {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+.trust-score-info {
+  flex: 1;
+  min-width: 260px;
+}
+.trust-score-level {
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 14px;
+}
+.trust-score-level.trust-excellent { background: #d1fae5; color: #065f46; }
+.trust-score-level.trust-high { background: #ecfccb; color: #3f6212; }
+.trust-score-level.trust-medium { background: #fef3c7; color: #92400e; }
+.trust-score-level:not(.trust-excellent):not(.trust-high):not(.trust-medium) { background: #fee2e2; color: #991b1b; }
+.trust-score-factors {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 12px;
+}
+.trust-score-factors li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px dashed var(--border-light, #eef0f3);
+  font-size: var(--font-sm, 14px);
+  color: var(--text-secondary);
+}
+.trust-score-factors li:last-child { border-bottom: none; }
+.trust-score-factors li strong {
+  margin-left: auto;
+  color: var(--text);
+  font-weight: 700;
+}
+.factor-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--success, #10b981);
+  flex-shrink: 0;
+}
+.trust-score-factors li.warn .factor-dot { background: var(--danger, #ef4444); }
+.trust-score-factors li.warn strong { color: var(--danger); }
+.trust-score-note {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 8px 0 0;
+}
+
+/* (Old Trust Analysis compact-gauge styles removed — merged into .trust-card above) */
+
+/* Trusted Rating: roomier, clearer verdict */
+.trusted-rating-row {
+  display: flex;
+  align-items: stretch;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+.rating-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 18px 28px;
+  border-radius: 12px;
+  background: #fafafa;
+  border: 1px solid var(--border-light, #ebeef5);
+  min-width: 160px;
+  flex: 1;
+}
+.rating-box.highlight {
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+}
+.rating-box-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted, #9ca3af);
+  font-weight: 700;
+}
+.rating-box-value {
+  font-size: 30px;
+  font-weight: 800;
+  color: var(--text, #303133);
+  line-height: 1.2;
+  margin: 4px 0 2px;
+}
+.rating-box-value.muted {
+  color: var(--text-muted, #9ca3af);
+}
+.rating-box.highlight .rating-box-value {
+  color: #047857;
+}
+.rating-box-sub {
+  font-size: 11px;
+  color: var(--text-secondary, #606266);
+}
+.rating-arrow {
+  font-size: 24px;
+  color: var(--text-muted, #9ca3af);
+  align-self: center;
+}
+.rating-delta {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: 999px;
+  align-self: center;
+}
+
+/* Solid border + softer blue for Message Seller (example uses solid outline) */
+.msg-btn {
+  border-style: solid;
+  border-color: #BFDBFE;
+}
+.msg-btn:hover {
+  border-style: solid;
+  border-color: #93C5FD;
+}
+
+/* Seller card pills (clean, with green "Verified") */
+
+/* Seller card pills (clean, with green "Verified") */
+.seller-pills {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.seller-pill {
+  font-size: var(--font-xs);
+  background: #F1F5F9;
+  color: var(--text-secondary, #475569);
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-weight: 600;
+  border: 1px solid #E2E8F0;
+}
+.seller-pill--ok {
+  background: #ECFDF5;
+  color: #067A56;
+  border-color: #A7F3D0;
+}
+
+/* Clean quantity stepper: [−] [1] [+] (replaces chunky el-input-number) */
+.pd-qty {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0;
+  flex-wrap: wrap;
+}
+.pd-qty-label {
+  font-weight: 600;
+  font-size: var(--font-sm);
+  color: var(--text, #333);
+}
+.pd-qty-stepper {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--border, #E2E8F0);
+  border-radius: var(--radius-md, 8px);
+  overflow: hidden;
+  background: #fff;
+  box-shadow: var(--shadow-xs, 0 1px 2px rgba(15, 23, 42, 0.04));
+}
+.pd-qty-btn {
+  width: 38px;
+  height: 38px;
+  border: none;
+  background: #fff;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-secondary, #475569);
+  cursor: pointer;
+  font-family: inherit;
+  transition: background .15s, color .15s;
+}
+.pd-qty-btn:hover:not(:disabled) {
+  background: #F8FAFC;
+  color: var(--primary, #FF4D3D);
+}
+.pd-qty-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.pd-qty-input {
+  width: 52px;
+  height: 38px;
+  border: none;
+  border-left: 1px solid var(--border-light, #EBEEF5);
+  border-right: 1px solid var(--border-light, #EBEEF5);
+  text-align: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text, #333);
+  font-family: inherit;
+  outline: none;
+  background: #fff;
+  -moz-appearance: textfield;
+}
+.pd-qty-input::-webkit-outer-spin-button,
+.pd-qty-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.pd-qty-avail {
+  font-size: var(--font-xs);
   color: var(--text-muted, #94A3B8);
 }
 </style>

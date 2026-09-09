@@ -6,7 +6,7 @@
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:32px">
       <el-statistic title="Total Products" :value="stats.totalProducts" />
       <el-statistic title="Total Orders" :value="stats.totalOrders" />
-      <el-statistic title="Revenue" :value="`$${(stats.totalRevenue || 0).toFixed(2)}`" />
+      <el-statistic title="Revenue" :value="`¥${(stats.totalRevenue || 0).toFixed(2)}`" />
       <el-statistic title="Flagged Reviews" :value="stats.flaggedReviews" />
     </div>
 
@@ -46,7 +46,7 @@
           <el-table-column prop="id" label="ID" width="60" />
           <el-table-column prop="username" label="Customer" width="120" />
           <el-table-column prop="totalAmount" label="Amount" width="100">
-            <template #default="{ row }">${{ (row.totalAmount || 0).toFixed(2) }}</template>
+            <template #default="{ row }">¥{{ (row.totalAmount || 0).toFixed(2) }}</template>
           </el-table-column>
           <el-table-column prop="status" label="Status" width="120">
             <template #default="{ row }">
@@ -90,7 +90,7 @@
           <el-table-column prop="id" label="ID" width="60" />
           <el-table-column prop="name" label="Name" min-width="180" />
           <el-table-column prop="price" label="Price" width="100">
-            <template #default="{ row }">${{ (row.price || 0).toFixed(2) }}</template>
+            <template #default="{ row }">¥{{ (row.price || 0).toFixed(2) }}</template>
           </el-table-column>
           <el-table-column prop="stock" label="Stock" width="80" />
           <el-table-column label="Trust Score" width="120">

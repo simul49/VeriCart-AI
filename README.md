@@ -2,7 +2,7 @@
 
 **AI-Powered E-Commerce Trust Platform**
 
-VeriCart AI is an intelligent e-commerce platform that leverages multiple LLM providers (DeepSeek, Qwen, Hunyuan) to deliver AI-driven product reviews analysis, authenticity verification, and smart shopping recommendations — building trust between buyers and sellers.
+VeriCart AI is an intelligent e-commerce platform that leverages multiple LLM providers (DeepSeek, Kimi, Hunyuan) to deliver AI-driven product reviews analysis, authenticity verification, and smart shopping recommendations — building trust between buyers and sellers.
 
 ---
 
@@ -13,7 +13,7 @@ VeriCart AI is an intelligent e-commerce platform that leverages multiple LLM pr
 | **Backend** | Spring Boot 3.2.0, Java 17, MyBatis 3.0.3, Spring Security + JWT |
 | **Frontend**| Vue 3.4, Vite 5, Pinia, Vue Router, Element Plus, Axios         |
 | **Database**| MySQL 8.0 (production), H2 (testing)                            |
-| **AI**      | DeepSeek (deepseek-chat), Qwen (qwen-plus), Hunyuan (hunyuan-lite) |
+| **AI**      | DeepSeek (deepseek-chat), Kimi (kimi-k3), Hunyuan (hunyuan-lite) |
 | **Infra**   | Docker Compose                                                  |
 
 ---
@@ -175,7 +175,7 @@ Base URL: `http://localhost:8080/api` — full reference in [docs/API-Documentat
 The platform integrates 3 LLM providers through a unified gateway (`AiGateway`):
 
 - **DeepSeek** — Sentiment analysis and fake-review detection
-- **Qwen (Alibaba)** — Topic extraction and positive-ratio scoring
+- **Kimi (Moonshot)** — Topic extraction and positive-ratio scoring
 - **Hunyuan (Tencent)** — Fallback + cross-checking when another provider fails
 
 Key AI capabilities:

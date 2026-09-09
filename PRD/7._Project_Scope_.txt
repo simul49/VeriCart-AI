@@ -154,7 +154,7 @@ Responsibilities
 - Trust Score Analysis
 - Logical Reasoning
 ---
-## Qwen
+## Kimi
 Responsibilities
 - Sentiment Analysis
 - Product Recommendation
@@ -290,7 +290,7 @@ Academic Requirements
 The successful completion of the project depends on:
 External APIs
 - DeepSeek API
-- Qwen API
+- Kimi API
 - Tencent Hunyuan API
 Frameworks
 - Spring Boot

@@ -217,7 +217,7 @@ Deliverables
 
 - AI Gateway
 - DeepSeek Integration
-- Qwen Integration
+- Kimi Integration
 - Tencent Hunyuan Integration
 
 ---
@@ -383,7 +383,7 @@ Software
 Cloud Resources
 
 - DeepSeek API
-- Qwen API
+- Kimi API
 - Tencent Hunyuan API
 
 Documentation

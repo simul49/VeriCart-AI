@@ -83,13 +83,14 @@ public class HunyuanClient {
         }
 
         try {
+            // hy4-preview (Hunyuan) on TokenHub does NOT accept a "temperature" parameter and
+            // returns 401006 when it is present. Omit it for this model (defaults apply server-side).
             Map<String, Object> body = Map.of(
                     "model", model,
                     "messages", List.of(
                             Map.of("role", "system", "content", systemPrompt),
                             Map.of("role", "user", "content", userMessage)
                     ),
-                    "temperature", 0.4,
                     "max_tokens", 1000
             );
 

@@ -34,10 +34,6 @@ ai:
     api-key: test-key
     base-url: http://localhost:9999
     model: deepseek-chat
-  qwen:
-    api-key: test-key
-    base-url: http://localhost:9999
-    model: qwen-plus
   hunyuan:
     api-key: test-key
     base-url: http://localhost:9999

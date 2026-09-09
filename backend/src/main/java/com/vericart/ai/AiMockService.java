@@ -208,7 +208,7 @@ public class AiMockService {
         return out;
     }
 
-    // --- Sentiment Analysis (Qwen simulator) ---
+    // --- Sentiment Analysis (Kimi simulator) ---
 
     public Map<String, Object> analyzeSentiment(String reviewContent) {
         if (!enabled) return null;
@@ -260,16 +260,21 @@ public class AiMockService {
         return Map.of("positiveRatio", ratio, "total", total, "positiveCount", positive, "negativeCount", negative);
     }
 
-    // --- Chat (Qwen simulator) ---
+    // --- Chat (Kimi simulator) ---
 
     public String chat(String productName, String question, List<Map<String, Object>> reviews) {
-        if (!enabled) return null;
+        // NOTE: intentionally NOT gated by `enabled` — this is the conversational safety
+        // net used by AiService when real LLM calls fail, so it must always return a reply.
+        String trimmed = question == null ? "" : question.trim();
+        if (isSocial(trimmed)) {
+            return socialReply(trimmed, null, productName);
+        }
 
         double avgRating = reviews.stream()
                 .mapToDouble(r -> ((Number) r.getOrDefault("rating", 3)).doubleValue())
                 .average().orElse(3.0);
         int totalReviews = reviews.size();
-        String q = question.toLowerCase();
+        String q = trimmed.toLowerCase();
 
         if (q.contains("trust") || q.contains("fake") || q.contains("real") || q.contains("authentic")) {
             return String.format(
@@ -298,19 +303,49 @@ public class AiMockService {
                     : String.format("**%s** has a mixed rating of **%.1f/5**. Read individual reviews carefully to see if the drawbacks matter to you.",
                         productName, avgRating);
         }
-        return String.format("Great question about **%s**! Based on **%d** reviews (avg **%.1f/5**), customers generally **%s** this product. Ask about trust, price, or common issues for a deeper answer.",
-                productName, totalReviews, avgRating,
-                avgRating >= 4.0 ? "love" : avgRating >= 3.0 ? "are satisfied with" : "have mixed feelings about");
+        return buildProductOpenAnswer(productName, totalReviews, avgRating, trimmed);
+    }
+
+    /**
+     * Open-ended fallback for product-scoped chat when none of the keyword branches
+     * above match. Returns a real, language-aware reply that summarises what the
+     * catalog says about this product and invites the user to keep asking.
+     */
+    private String buildProductOpenAnswer(String productName, int totalReviews, double avgRating, String question) {
+        boolean chinese = question != null && question.matches(".*[\u4e00-\u9fff].*");
+        String verdict = avgRating >= 4.0
+                ? (chinese ? "**很受买家喜爱**" : "**very well received**")
+                : avgRating >= 3.0
+                ? (chinese ? "**整体口碑不错**" : "**generally well reviewed**")
+                : (chinese ? "**评价褒贬不一**" : "**receiving mixed feedback**");
+
+        if (chinese) {
+            return String.format(
+                    "关于「**%s**」我帮你梳理一下：当前已有 **%d** 条真实买家评价，平均 **%.1f/5** 分，%s。"
+                  + "\n\n如果你想深入了解某方面——比如**质量、价格、对比、退换货、可信度、规格**——直接告诉我，"
+                  + "我会基于这条商品的买家评价给你更细致的分析。",
+                    productName, totalReviews, avgRating, verdict);
+        }
+        return String.format(
+                "Here's a quick read on **%s**: it has **%d** real buyer review(s) with an average of **%.1f/5**, and feedback is %s."
+              + "\n\nIf you'd like a deeper look at any specific aspect — **quality, price, comparisons, returns, trust, specs, warranty** —"
+              + " just ask and I'll dig into the actual reviews for you.",
+                productName, totalReviews, avgRating, verdict);
     }
 
     public String generalChat(String question, List<Map<String, Object>> productContext) {
-        if (!enabled) return null;
+        // NOTE: intentionally NOT gated by `enabled` — this is the conversational safety
+        // net used by AiService when real LLM calls fail, so it must always return a reply.
+        String trimmed = question == null ? "" : question.trim();
+        if (isSocial(trimmed)) {
+            return socialReply(trimmed, productContext, null);
+        }
 
-        if (productContext.isEmpty()) {
+        if (productContext == null || productContext.isEmpty()) {
             return "I'm here to help with your shopping questions! However, I don't see any products in our catalog right now. What can I help you find?";
         }
 
-        String q = question.toLowerCase();
+        String q = trimmed.toLowerCase();
 
         Map<String, Object> best = productContext.stream()
                 .max(Comparator.comparingDouble(a -> ((Number) a.getOrDefault("rating", 0)).doubleValue()))
@@ -371,8 +406,112 @@ public class AiMockService {
                     mostTrusted.get("name"), mostTrusted.get("trustScore"));
         }
 
-        return String.format("Looking at our catalog of **%d** products, I can help you compare, filter by budget, find the best-rated item, or check trust scores. What would you like to know?",
-                productContext.size());
+        return buildOpenAnswer(trimmed, productContext);
+    }
+
+    /**
+     * Open-ended fallback used when the user asks something the keyword branches above
+     * don't cover. Builds a real, language-aware answer from the catalog instead of
+     * the old canned "Looking at our catalog…" reply, so EVERY question gets a useful
+     * response. If the question mentions product names or features, ranks matching
+     * products by rating; otherwise surfaces the top-rated pick and invites follow-ups.
+     */
+    private String buildOpenAnswer(String question, List<Map<String, Object>> productContext) {
+        boolean chinese = question != null && question.matches(".*[\u4e00-\u9fff].*");
+        String q = question == null ? "" : question.toLowerCase();
+
+        // Build the keyword list. English uses stopwords; Chinese has no spaces, so the
+        // whole trimmed question is treated as a single search phrase.
+        String[] STOP = {
+                "a","an","the","is","are","was","were","be","been","being",
+                "i","you","he","she","it","we","they","me","my","your","our","their",
+                "do","does","did","can","could","should","would","will","may","might","shall",
+                "what","which","who","whom","whose","where","when","why","how",
+                "of","in","on","at","to","for","with","about","by","from","as","than","into","over","between",
+                "any","some","this","that","these","those","there","here",
+                "find","show","give","need","want","looking","please","tell","know","ask","say","get","got",
+                "very","much","many","more","most","best","good","great","top","one",
+                "和","的","了","在","是","我","你","他","她","它","们","有","要","吗","呢","啊","吧",
+                "请","给","找","推荐","想","问","吗","呢","啊","哦","嗯","好","吧","这个","那个","什么"
+        };
+        java.util.Set<String> stop = new java.util.HashSet<>(Arrays.asList(STOP));
+
+        java.util.List<String> keywords = new ArrayList<>();
+        if (chinese) {
+            String cleaned = question.trim();
+            if (cleaned.length() >= 2) keywords.add(cleaned);
+        } else {
+            for (String tok : q.split("[^\\p{L}\\p{N}]+")) {
+                if (tok.length() < 2) continue;
+                if (stop.contains(tok)) continue;
+                keywords.add(tok);
+            }
+        }
+
+        // Score every product by how many keywords appear in its name.
+        List<Map<String, Object>> matched = new ArrayList<>();
+        for (Map<String, Object> p : productContext) {
+            String name = String.valueOf(p.getOrDefault("name", "")).toLowerCase();
+            int hits = 0;
+            for (String k : keywords) {
+                if (name.contains(k)) hits++;
+            }
+            if (hits > 0) matched.add(p);
+        }
+        matched.sort((a, b) -> Double.compare(
+                ((Number) b.getOrDefault("rating", 0)).doubleValue(),
+                ((Number) a.getOrDefault("rating", 0)).doubleValue()));
+
+        StringBuilder sb = new StringBuilder();
+        if (!matched.isEmpty()) {
+            int n = Math.min(3, matched.size());
+            if (chinese) {
+                sb.append("根据你提到的内容，我从当前在售的 **").append(productContext.size())
+                  .append("** 件商品中挑出最相关的 **").append(n).append("** 件给你：\n\n");
+            } else {
+                sb.append("Based on what you mentioned, here are the **").append(n)
+                  .append("** most relevant product(s) from our catalog of **")
+                  .append(productContext.size()).append("**:\n\n");
+            }
+            for (int i = 0; i < n; i++) {
+                Map<String, Object> p = matched.get(i);
+                sb.append(String.format("%d. **%s** — $%.2f, %.1f/5 stars, trust %s/100\n",
+                        i + 1, p.get("name"),
+                        ((Number) p.getOrDefault("price", 0)).doubleValue(),
+                        ((Number) p.getOrDefault("rating", 0)).doubleValue(),
+                        p.get("trustScore")));
+            }
+            if (chinese) {
+                sb.append("\n点开任意商品可以查看 AI 摘要与真实买家评价，或继续和我聊任何细节。");
+            } else {
+                sb.append("\nTap any product to see the AI summary and real buyer reviews, or keep chatting with me about anything else.");
+            }
+        } else {
+            Map<String, Object> top = productContext.stream()
+                    .max(Comparator.comparingDouble(a -> ((Number) a.getOrDefault("rating", 0)).doubleValue()))
+                    .orElse(null);
+            if (chinese) {
+                sb.append("感谢你的提问！我们当前在售 **").append(productContext.size()).append("** 件商品");
+                if (top != null) {
+                    sb.append("，当下评分最高的是 **").append(top.get("name"))
+                      .append("**（").append(String.format("%.1f", ((Number) top.get("rating")).doubleValue()))
+                      .append("/5 分）");
+                }
+                sb.append("。\n\n无论你想了解**比较、价格、可信度、退换货、推荐**或者任何其它购物相关问题，")
+                  .append("都可以继续告诉我，我会基于真实数据尽力帮你解答。");
+            } else {
+                sb.append("Thanks for the question! Our catalog currently lists **")
+                  .append(productContext.size()).append("** products");
+                if (top != null) {
+                    sb.append(", and the top-rated one right now is **").append(top.get("name"))
+                      .append("** (").append(String.format("%.1f", ((Number) top.get("rating")).doubleValue()))
+                      .append("/5 stars)");
+                }
+                sb.append(".\n\nYou can ask me **anything** — comparisons, pricing, trust, returns, recommendations, ")
+                  .append("warranty, shipping, or any other shopping question — and I'll answer based on the real data.");
+            }
+        }
+        return sb.toString();
     }
 
     public Map<String, Object> recommend(String userPreferences, List<Map<String, Object>> products) {
@@ -487,6 +626,134 @@ public class AiMockService {
         }
         sb.append("\n*Tip: Click any product card to view details, read reviews, and chat with the AI assistant for a deeper analysis.*");
         return sb.toString();
+    }
+
+    // --- Conversational helpers (greetings / closers) ---
+    // These power both `chat` (product-scoped) and `generalChat` so short social
+    // messages like "hi" / "hello" / "thanks" get a varied, natural reply instead
+    // of the old canned catalog template. They run even when `enabled=false`,
+    // because they double as the last-resort fallback when the real LLM throws.
+
+    /** True for short messages with no real question — greetings and acknowledgments. */
+    private boolean isSocial(String raw) {
+        if (raw == null) return false;
+        String t = raw.trim();
+        if (t.isEmpty() || t.length() > 60) return false;
+        if (t.contains("?") || t.contains("？")) return false;
+        String lower = t.toLowerCase();
+        // Greetings checked FIRST so phrases like "good morning" aren't misread as the
+        // closer "good".
+        String[] greetings = {
+                "hi","hello","hey","yo","howdy","greetings","hiya","heya",
+                "good morning","good afternoon","good evening",
+                "你好","您好","在吗","哈喽","嗨"
+        };
+        for (String g : greetings) {
+            if (lower.equals(g) || lower.equals(g + "!") || lower.equals(g + ".")
+                    || lower.startsWith(g + " ") || lower.startsWith(g + "!")) {
+                return true;
+            }
+        }
+        return isCloser(lower);
+    }
+
+    /** True for short acknowledgments / closers ("thanks", "ok", "great", "好的"). */
+    private boolean isCloser(String lower) {
+        String[] closers = {
+                "thanks","thank you","thx","ty","ok","okay","k","got it","great","awesome",
+                "perfect","nice","cool","sure","bye","cheers","appreciate","alright","good",
+                "好的","谢谢","多谢","感谢","明白","收到","行","好","拜拜"
+        };
+        for (String c : closers) {
+            if (lower.equals(c)
+                    || lower.startsWith(c + " ") || lower.startsWith(c + "!")
+                    || lower.startsWith(c + ",") || lower.startsWith(c + ".")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Build a varied, conversational reply for a greeting/closer. Matches the user's
+     * language and optionally references the product or top catalog pick so the
+     * response feels personal rather than a static script.
+     */
+    private String socialReply(String question, List<Map<String, Object>> productContext, String productName) {
+        boolean chinese = question != null && question.matches(".*[\u4e00-\u9fff].*");
+        String lower = question.toLowerCase();
+        boolean closer = isCloser(lower);
+
+        // Pull a top-rated product name for the optional "by the way…" line.
+        String topName = null;
+        Double topRating = null;
+        if (productContext != null && !productContext.isEmpty()) {
+            Map<String, Object> top = productContext.stream()
+                    .max(Comparator.comparingDouble(a -> ((Number) a.getOrDefault("rating", 0)).doubleValue()))
+                    .orElse(null);
+            if (top != null) {
+                topName = String.valueOf(top.getOrDefault("name", ""));
+                Object r = top.get("rating");
+                if (r instanceof Number) topRating = ((Number) r).doubleValue();
+            }
+        }
+
+        if (chinese) {
+            if (closer) {
+                String[] closers = {
+                        "不客气！有任何其它问题随时问我，我都在 :)",
+                        "很高兴能帮到你！还想了解点什么尽管问。",
+                        "随时找我，祝你购物愉快！"
+                };
+                return closers[randomInt(0, closers.length - 1)];
+            }
+            if (productName != null) {
+                String[] productG = {
+                        "你好！看到你在看 **%s**，想了解它的质量、价格还是买家口碑？我都可以帮你～",
+                        "嗨～👋 我是你的购物助手，正在帮你查看 **%s**。想问哪方面？质量、对比还是售后？",
+                };
+                return String.format(productG[randomInt(0, productG.length - 1)], productName);
+            }
+            String[] greetings = {
+                    "你好！我是 VeriCart AI 购物助手，可以帮你找商品、比价、看评价、查可信度，也可以随便聊聊。今天想了解什么？",
+                    "嗨～👋 我是你的购物助手。需要找特定商品、做对比、查评分，还是想聊聊其它话题？告诉我吧！",
+                    "你好呀！想从哪开始？比价、推荐、还是先看看店里评分最高的商品？"
+            };
+            String base = greetings[randomInt(0, greetings.length - 1)];
+            if (topName != null) {
+                return base + "\n\n小提示：店里目前评分最高的是 **" + topName + "**（"
+                        + String.format("%.1f", topRating) + "/5），要看看吗？";
+            }
+            return base;
+        }
+
+        if (closer) {
+            String[] closers = {
+                    "You're welcome! 😊 I'm here whenever you need a hand — feel free to ask anything.",
+                    "Happy to help! Just message me again if anything else comes up.",
+                    "Anytime! Have a great day — come back anytime you need shopping help.",
+            };
+            return closers[randomInt(0, closers.length - 1)];
+        }
+        if (productName != null) {
+            String[] productG = {
+                    "Hi! I see you're looking at **%s** 🙂 What would you like to know — quality, value, how it compares, or something else?",
+                    "Hello! Happy to dig into **%s** with you. Ask me about its reviews, how it stacks up to alternatives, or anything else.",
+            };
+            return String.format(productG[randomInt(0, productG.length - 1)], productName);
+        }
+        String[] greetings = {
+                "Hi there! 👋 I'm VeriCart AI, your shopping assistant. I can help you find products, compare options, check trust scores, or just chat — what would you like to do?",
+                "Hello! Great to see you. I can help you browse the catalog, get personalized recommendations, or answer questions about reviews and authenticity. What's on your mind?",
+                "Hey! Ready to help you shop. Ask me anything — comparisons, prices, the best-rated item, trust questions, or just say hi back 🙂",
+                "Hi! I'm here to make shopping easier. I can compare products, summarize reviews, check authenticity, or just chat. How can I help today?",
+        };
+        String base = greetings[randomInt(0, greetings.length - 1)];
+        if (topName != null) {
+            return base + "\n\nBy the way, the top-rated item in the store right now is **"
+                    + topName + "** (" + String.format("%.1f", topRating) + "/5). Want to take a look?";
+        }
+        return base;
     }
 
     // --- Review Summary (Hunyuan simulator) ---

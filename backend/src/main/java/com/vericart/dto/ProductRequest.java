@@ -24,4 +24,6 @@ public class ProductRequest {
     private String brand;
     private String images;
     private String specifications;
+    private String externalUrl;
+    private String variants;
 }

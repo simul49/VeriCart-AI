@@ -14,8 +14,8 @@ import java.util.Map;
 public class AiGateway {
 
     private final DeepSeekClient deepSeekClient;
-    private final QwenClient qwenClient;
     private final HunyuanClient hunyuanClient;
+    private final KimiClient kimiClient;
 
     /**
      * Detect fake review — uses DeepSeek (best at reasoning)
@@ -26,11 +26,11 @@ public class AiGateway {
     }
 
     /**
-     * Analyze sentiment — uses Qwen
+     * Analyze sentiment — uses Kimi
      */
     public Map<String, Object> analyzeSentiment(String reviewContent) {
-        log.info("[AI Gateway] Routing sentiment analysis → Qwen");
-        return qwenClient.analyzeSentiment(reviewContent);
+        log.info("[AI Gateway] Routing sentiment analysis → Kimi");
+        return kimiClient.analyzeSentiment(reviewContent);
     }
 
     /**
@@ -42,7 +42,7 @@ public class AiGateway {
     }
 
     /**
-     * Generate trust score — orchestrates DeepSeek + Qwen + Hunyuan
+     * Generate trust score — orchestrates DeepSeek + Kimi + Hunyuan
      */
     public Map<String, Object> generateTrustScore(String productName, List<Map<String, Object>> reviews) {
         log.info("[AI Gateway] Generating Trust Score (multi-model orchestration)");
@@ -55,16 +55,16 @@ public class AiGateway {
             log.warn("DeepSeek trust analysis failed, using fallback", e);
         }
 
-        // 2. Qwen: sentiment overview
-        Map<String, Object> qwenResult = null;
+        // 2. Kimi: sentiment overview
+        Map<String, Object> kimiResult = null;
         try {
-            qwenResult = qwenClient.analyzeSentimentBatch(reviews);
+            kimiResult = kimiClient.analyzeSentimentBatch(reviews);
         } catch (Exception e) {
-            log.warn("Qwen sentiment analysis failed, using fallback", e);
+            log.warn("Kimi sentiment analysis failed, using fallback", e);
         }
 
         // 3. Compute aggregated trust score
-        int score = computeTrustScore(deepSeekResult, qwenResult, reviews.size());
+        int score = computeTrustScore(deepSeekResult, kimiResult, reviews.size());
         String level = score >= 85 ? "Excellent" : score >= 70 ? "High" : score >= 50 ? "Medium" : "Low";
 
         return Map.of(
@@ -72,50 +72,74 @@ public class AiGateway {
                 "trustLevel", level,
                 "totalReviews", reviews.size(),
                 "deepSeekAnalysis", deepSeekResult != null ? deepSeekResult : Map.of(),
-                "qwenAnalysis", qwenResult != null ? qwenResult : Map.of()
+                "kimiAnalysis", kimiResult != null ? kimiResult : Map.of()
         );
     }
 
     /**
-     * AI Shopping Assistant chat — uses Qwen
+     * AI Shopping Assistant chat (product-scoped).
+     * Prefers Kimi (Moonshot) when configured, otherwise DeepSeek; the try/catch
+     * still catches any runtime failure and falls back to DeepSeek.
+     * (Trust / fake-review analysis stays on DeepSeek — see detectFakeReview / generateTrustScore.)
      */
     public AiChatResponse chat(Long productId, String productName, String question,
-                               List<Map<String, Object>> reviews) {
-        log.info("[AI Gateway] Routing chat → Qwen for product={}", productId);
-        String answer = qwenClient.chat(productName, question, reviews);
-        return new AiChatResponse(answer, "qwen-plus", productId);
+                               List<Map<String, Object>> reviews, List<Map<String, String>> history) {
+        if (kimiClient.isConfigured()) {
+            try {
+                log.info("[AI Gateway] Routing chat → Kimi for product={}", productId);
+                String answer = kimiClient.chat(productName, question, reviews, history);
+                return new AiChatResponse(answer, "kimi", productId);
+            } catch (Exception e) {
+                log.warn("[AI Gateway] Kimi chat failed ({}), falling back to DeepSeek", e.getMessage());
+            }
+        } else {
+            log.info("[AI Gateway] Kimi not configured — routing chat → DeepSeek for product={}", productId);
+        }
+        String answer = deepSeekClient.chat(productName, question, reviews, history);
+        return new AiChatResponse(answer, "deepseek", productId);
     }
 
     /**
-     * General chat (no specific product context)
+     * General chat (no specific product context).
+     * Prefers Kimi (Moonshot) when configured, otherwise DeepSeek.
      */
-    public AiChatResponse generalChat(String question, List<Map<String, Object>> productContext) {
-        log.info("[AI Gateway] Routing general chat → Qwen");
-        String answer = qwenClient.generalChat(question, productContext);
-        return new AiChatResponse(answer, "qwen-plus", null);
+    public AiChatResponse generalChat(String question, List<Map<String, Object>> productContext, List<Map<String, String>> history) {
+        if (kimiClient.isConfigured()) {
+            try {
+                log.info("[AI Gateway] Routing general chat → Kimi");
+                String answer = kimiClient.generalChat(question, productContext, history);
+                return new AiChatResponse(answer, "kimi", null);
+            } catch (Exception e) {
+                log.warn("[AI Gateway] Kimi general chat failed ({}), falling back to DeepSeek", e.getMessage());
+            }
+        } else {
+            log.info("[AI Gateway] Kimi not configured — routing general chat → DeepSeek");
+        }
+        String answer = deepSeekClient.generalChat(question, productContext, history);
+        return new AiChatResponse(answer, "deepseek", null);
     }
 
     /**
      * Get product recommendations
      */
     public Map<String, Object> getRecommendations(String userPreferences, List<Map<String, Object>> products) {
-        log.info("[AI Gateway] Routing recommendations → Qwen");
-        return qwenClient.recommend(userPreferences, products);
+        log.info("[AI Gateway] Routing recommendations → Kimi");
+        return kimiClient.recommend(userPreferences, products);
     }
 
     /**
      * Auto-reply to a customer's product inquiry (used when the seller is not available).
-     * Routes to Qwen — the store-assistant persona. The conversation history lets the
+     * Routes to Kimi — the store-assistant persona. The conversation history lets the
      * AI answer every follow-up question in context.
      */
     public String answerInquiry(Map<String, Object> productInfo, String question,
                                 List<Map<String, Object>> history) {
-        log.info("[AI Gateway] Routing inquiry auto-reply → Qwen for product={}",
+        log.info("[AI Gateway] Routing inquiry auto-reply → Kimi for product={}",
                 productInfo != null ? productInfo.get("name") : "?");
-        return qwenClient.answerProductQuestion(productInfo, question, history);
+        return kimiClient.answerProductQuestion(productInfo, question, history);
     }
 
-    private int computeTrustScore(Map<String, Object> deepSeek, Map<String, Object> qwen, int reviewCount) {
+    private int computeTrustScore(Map<String, Object> deepSeek, Map<String, Object> kimi, int reviewCount) {
         int baseScore = 70;
 
         if (deepSeek != null) {
@@ -125,8 +149,8 @@ public class AiGateway {
             }
         }
 
-        if (qwen != null) {
-            Object posObj = qwen.get("positiveRatio");
+        if (kimi != null) {
+            Object posObj = kimi.get("positiveRatio");
             if (posObj instanceof Number) {
                 double pos = ((Number) posObj).doubleValue();
                 // Providers may report this as a fraction (0–1) or a percentage (0–100).

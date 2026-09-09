@@ -17,7 +17,7 @@
       </div>
       <div class="stat-card">
         <span class="stat-label">Revenue</span>
-        <span class="stat-value">${{ Number(stats.revenue || 0).toFixed(2) }}</span>
+        <span class="stat-value">¥{{ Number(stats.revenue || 0).toFixed(2) }}</span>
       </div>
       <div class="stat-card">
         <span class="stat-label">Avg rating</span>
@@ -59,7 +59,7 @@
                     <span>{{ p.name }}</span>
                   </div>
                 </td>
-                <td>${{ p.price }}</td>
+                <td>¥{{ p.price }}</td>
                 <td>
                   <span :class="{ 'low-stock': p.stock < 10 }">{{ p.stock }}</span>
                 </td>
@@ -95,7 +95,7 @@
               <span :class="['status-badge', statusClass(o.status)]">{{ o.status }}</span>
             </div>
             <div class="order-mid">
-              <span class="order-total">${{ o.totalAmount }}</span>
+              <span class="order-total">¥{{ o.totalAmount }}</span>
               <span class="order-ship">{{ o.shippingName }} · {{ o.shippingAddress }}</span>
             </div>
             <div class="order-actions">

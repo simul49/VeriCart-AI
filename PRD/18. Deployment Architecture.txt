@@ -14,7 +14,7 @@
 >
 > **Database:** MySQL 8.0
 >
-> **AI Platform:** AI Gateway + DeepSeek + Qwen + Tencent Hunyuan
+> **AI Platform:** AI Gateway + DeepSeek + Kimi + Tencent Hunyuan
 
 ---
 
@@ -83,7 +83,7 @@ Spring Boot Container --> AI Gateway
 
 AI Gateway --> DeepSeek API
 
-AI Gateway --> Qwen API
+AI Gateway --> Kimi API
 
 AI Gateway --> Tencent Hunyuan API
 ```

@@ -67,7 +67,7 @@ The appendix serves as a reference section for developers, architects, testers, 
 | Model | Primary Responsibility |
 |--------|------------------------|
 | DeepSeek | Trust Analysis & Fake Review Detection |
-| Qwen | Sentiment Analysis & Recommendations |
+| Kimi | Sentiment Analysis & Recommendations |
 | Tencent Hunyuan | Review Summaries & Multilingual NLP |
 
 ---
@@ -121,7 +121,7 @@ DeepSeek
 
 ↓
 
-Qwen
+Kimi
 
 ↓
 
@@ -239,7 +239,7 @@ DeepSeek
 
 ↓
 
-Qwen
+Kimi
 
 ↓
 

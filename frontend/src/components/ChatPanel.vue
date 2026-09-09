@@ -93,12 +93,13 @@ async function send() {
   const text = input.value.trim()
   if (!text) return
 
+  const history = messages.value.map(m => ({ role: m.role, content: m.content }))
   messages.value.push({ role: 'user', content: text })
   input.value = ''
   loading.value = true
 
   try {
-    const payload = { question: text }
+    const payload = { question: text, history }
     if (props.productId) payload.productId = props.productId
 
     const res = await aiApi.chat(payload)

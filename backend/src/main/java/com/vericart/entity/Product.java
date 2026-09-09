@@ -24,6 +24,8 @@ public class Product {
     private Integer fakeReviewCount;
     private Integer status;
     private Long sellerId;
+    private String externalUrl;
+    private String variants;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

@@ -1,22 +1,26 @@
 package com.vericart.service;
 
+import com.vericart.dto.CategorySectionDTO;
 import com.vericart.dto.ProductRequest;
+import com.vericart.dto.SubcategorySectionDTO;
+import com.vericart.entity.Category;
 import com.vericart.entity.Product;
 import com.vericart.exception.BusinessException;
+import com.vericart.mapper.CategoryMapper;
 import com.vericart.mapper.ProductMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class ProductService {
 
     private final ProductMapper productMapper;
+    private final CategoryMapper categoryMapper;
 
     public Product getById(Long id) {
         Product product = productMapper.findById(id);
@@ -51,6 +55,8 @@ public class ProductService {
         product.setBrand(request.getBrand());
         product.setImages(request.getImages());
         product.setSpecifications(request.getSpecifications());
+        product.setExternalUrl(request.getExternalUrl());
+        product.setVariants(request.getVariants());
         product.setSellerId(sellerId);
         product.setStatus(1);
         productMapper.insert(product);
@@ -70,6 +76,8 @@ public class ProductService {
         existing.setBrand(request.getBrand());
         existing.setImages(request.getImages());
         existing.setSpecifications(request.getSpecifications());
+        existing.setExternalUrl(request.getExternalUrl());
+        existing.setVariants(request.getVariants());
 
         productMapper.update(existing);
         return existing;
@@ -100,6 +108,69 @@ public class ProductService {
 
     public List<Product> findBySeller(Long sellerId) {
         return productMapper.findBySeller(sellerId);
+    }
+
+    /**
+     * FR — Browse "All Products" grouped by main category → sub-category, with the
+     * product cards for each sub-category. Only sub-categories that actually contain
+     * products are returned, so the page never shows empty sections.
+     *
+     * Products assigned directly to a MAIN category (i.e. not to any sub-category)
+     * are intentionally excluded here — they are the uncategorised "other" products
+     * and are not part of the per-sub-category browsing experience.
+     *
+     * @param mainCategoryId optional — restrict to a single main category
+     */
+    public List<CategorySectionDTO> findGroupedBySubcategory(Long mainCategoryId) {
+        List<Product> allProducts = productMapper.findAllSimple();   // status = 1 only
+        List<Category> allCategories = categoryMapper.findAll();      // status = 1 only
+
+        Map<Long, Category> catById = allCategories.stream()
+                .collect(Collectors.toMap(Category::getId, c -> c, (a, b) -> a));
+
+        // Attach each product to its sub-category (parent_id != null). Products on a
+        // main category (or with an unknown category) are skipped.
+        Map<Long, List<Product>> productsBySub = new HashMap<>();
+        for (Product p : allProducts) {
+            Long cid = p.getCategoryId();
+            if (cid == null) continue;
+            Category c = catById.get(cid);
+            if (c == null || c.getParentId() == null) continue; // main/unknown → not shown
+            productsBySub.computeIfAbsent(c.getId(), k -> new ArrayList<>()).add(p);
+        }
+
+        List<Category> mains = allCategories.stream()
+                .filter(c -> c.getParentId() == null)
+                .filter(c -> mainCategoryId == null || c.getId().equals(mainCategoryId))
+                .sorted(Comparator.comparingInt(c -> c.getSortOrder() == null ? 0 : c.getSortOrder()))
+                .toList();
+
+        List<CategorySectionDTO> result = new ArrayList<>();
+        for (Category main : mains) {
+            List<SubcategorySectionDTO> subs = allCategories.stream()
+                    .filter(c -> main.getId().equals(c.getParentId()))
+                    .sorted(Comparator.comparingInt(c -> c.getSortOrder() == null ? 0 : c.getSortOrder()))
+                    .map(sub -> {
+                        SubcategorySectionDTO dto = new SubcategorySectionDTO();
+                        dto.setId(sub.getId());
+                        dto.setName(sub.getName());
+                        dto.setImages(sub.getImages());
+                        dto.setProducts(productsBySub.getOrDefault(sub.getId(), List.of()));
+                        return dto;
+                    })
+                    .filter(dto -> dto.getProducts() != null && !dto.getProducts().isEmpty())
+                    .collect(Collectors.toList());
+
+            if (subs.isEmpty()) continue; // skip main categories with no sub-category products
+
+            CategorySectionDTO section = new CategorySectionDTO();
+            section.setId(main.getId());
+            section.setName(main.getName());
+            section.setImages(main.getImages());
+            section.setSubcategories(subs);
+            result.add(section);
+        }
+        return result;
     }
 
     /**

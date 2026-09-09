@@ -47,6 +47,8 @@ CREATE TABLE IF NOT EXISTS `product` (
     `fake_review_count` INT DEFAULT 0,
     `status` TINYINT DEFAULT 1,
     `seller_id` BIGINT,
+    `external_url` VARCHAR(1024) DEFAULT NULL,
+    `variants` JSON DEFAULT NULL,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (`category_id`) REFERENCES `category`(`id`) ON DELETE SET NULL,
@@ -202,17 +204,29 @@ MERGE INTO `user` (`id`, `username`, `email`, `password`, `role`, `status`) KEY 
 MERGE INTO `user` (`id`, `username`, `email`, `password`, `role`, `status`) KEY (`id`) VALUES
 (2, 'testuser', 'test@vericart.ai', '$2a$10$6Vzf8EuBVoQ4fJVFxjZ/1OwvjtMQWeMxYkw/GMU2gx9GiJNufe0Lu', 'CUSTOMER', 1);
 
--- Categories
+-- Categories — Pinduoduo-style primary categories
 MERGE INTO `category` (`id`, `name`, `sort_order`) KEY (`id`) VALUES
-(1, 'Electronics', 1);
+(2, 'Apparel & Fashion', 1);
 MERGE INTO `category` (`id`, `name`, `sort_order`) KEY (`id`) VALUES
-(2, 'Fashion', 2);
+(34, 'Fresh Produce & Grocery', 2);
 MERGE INTO `category` (`id`, `name`, `sort_order`) KEY (`id`) VALUES
 (3, 'Home & Kitchen', 3);
 MERGE INTO `category` (`id`, `name`, `sort_order`) KEY (`id`) VALUES
-(4, 'Books', 4);
+(1, 'Electronics & Digital', 4);
 MERGE INTO `category` (`id`, `name`, `sort_order`) KEY (`id`) VALUES
-(5, 'Sports', 5);
+(42, 'Home Appliances', 5);
+MERGE INTO `category` (`id`, `name`, `sort_order`) KEY (`id`) VALUES
+(26, 'Beauty & Personal Care', 6);
+MERGE INTO `category` (`id`, `name`, `sort_order`) KEY (`id`) VALUES
+(30, 'Mother & Baby', 7);
+MERGE INTO `category` (`id`, `name`, `sort_order`) KEY (`id`) VALUES
+(5, 'Sports & Outdoors', 8);
+MERGE INTO `category` (`id`, `name`, `sort_order`) KEY (`id`) VALUES
+(46, 'Car & Auto Accessories', 9);
+MERGE INTO `category` (`id`, `name`, `sort_order`) KEY (`id`) VALUES
+(50, 'Pet Supplies', 10);
+MERGE INTO `category` (`id`, `name`, `sort_order`) KEY (`id`) VALUES
+(4, 'Stationery & Office', 11);
 
 -- Sub-categories
 MERGE INTO `category` (`id`, `name`, `parent_id`, `sort_order`) KEY (`id`) VALUES
@@ -222,9 +236,37 @@ MERGE INTO `category` (`id`, `name`, `parent_id`, `sort_order`) KEY (`id`) VALUE
 MERGE INTO `category` (`id`, `name`, `parent_id`, `sort_order`) KEY (`id`) VALUES
 (8, 'Headphones', 1, 3);
 MERGE INTO `category` (`id`, `name`, `parent_id`, `sort_order`) KEY (`id`) VALUES
-(9, 'Men''s Clothing', 2, 1);
+(11, 'Tablets', 1, 4);
 MERGE INTO `category` (`id`, `name`, `parent_id`, `sort_order`) KEY (`id`) VALUES
-(10, 'Women''s Clothing', 2, 2);
+(12, 'Cameras', 1, 5);
+MERGE INTO `category` (`id`, `name`, `parent_id`, `sort_order`) KEY (`id`) VALUES
+(13, 'Smart Watches', 1, 6);
+MERGE INTO `category` (`id`, `name`, `parent_id`, `sort_order`) KEY (`id`) VALUES
+(10, 'Women''s Clothing', 2, 1);
+MERGE INTO `category` (`id`, `name`, `parent_id`, `sort_order`) KEY (`id`) VALUES
+(9, 'Men''s Clothing', 2, 2);
+MERGE INTO `category` (`id`, `name`, `parent_id`, `sort_order`) KEY (`id`) VALUES
+(14, 'Shoes', 2, 6);
+MERGE INTO `category` (`id`, `name`, `parent_id`, `sort_order`) KEY (`id`) VALUES
+(41, 'Bags & Luggage', 2, 9);
+MERGE INTO `category` (`id`, `name`, `parent_id`, `sort_order`) KEY (`id`) VALUES
+(17, 'Kitchenware', 3, 1);
+MERGE INTO `category` (`id`, `name`, `parent_id`, `sort_order`) KEY (`id`) VALUES
+(18, 'Bedding & Towels', 3, 2);
+MERGE INTO `category` (`id`, `name`, `parent_id`, `sort_order`) KEY (`id`) VALUES
+(19, 'Home Decor', 3, 3);
+MERGE INTO `category` (`id`, `name`, `parent_id`, `sort_order`) KEY (`id`) VALUES
+(15, 'Furniture', 3, 5);
+MERGE INTO `category` (`id`, `name`, `parent_id`, `sort_order`) KEY (`id`) VALUES
+(23, 'Books', 4, 3);
+MERGE INTO `category` (`id`, `name`, `parent_id`, `sort_order`) KEY (`id`) VALUES
+(69, 'Office Supplies', 4, 1);
+MERGE INTO `category` (`id`, `name`, `parent_id`, `sort_order`) KEY (`id`) VALUES
+(20, 'Fitness Equipment', 5, 1);
+MERGE INTO `category` (`id`, `name`, `parent_id`, `sort_order`) KEY (`id`) VALUES
+(21, 'Activewear', 5, 2);
+MERGE INTO `category` (`id`, `name`, `parent_id`, `sort_order`) KEY (`id`) VALUES
+(22, 'Outdoor Gear', 5, 3);
 
 -- Sample Products
 MERGE INTO `product` (`id`, `name`, `description`, `price`, `stock`, `category_id`, `brand`, `images`, `rating`, `review_count`, `trust_score`, `trust_level`, `status`, `seller_id`) KEY (`id`) VALUES

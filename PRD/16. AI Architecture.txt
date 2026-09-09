@@ -8,7 +8,7 @@
 >
 > **Architecture Style:** Multi-LLM Intelligent Orchestration Platform
 >
-> **AI Models:** DeepSeek • Qwen • Tencent Hunyuan
+> **AI Models:** DeepSeek • Kimi • Tencent Hunyuan
 >
 > **Version:** AI Architecture v1.0
 
@@ -106,13 +106,13 @@ Gateway["AI Gateway"]
 
 Gateway --> DeepSeek
 
-Gateway --> Qwen
+Gateway --> Kimi
 
 Gateway --> Hunyuan
 
 DeepSeek["DeepSeek"]
 
-Qwen["Qwen"]
+Kimi["Kimi"]
 
 Hunyuan["Tencent Hunyuan"]
 
@@ -173,7 +173,7 @@ Fake Probability
 
 ---
 
-## Qwen
+## Kimi
 
 Primary Responsibilities
 
@@ -191,7 +191,7 @@ Customer asks
 Should I buy this laptop?
 ```
 
-Qwen returns
+Kimi returns
 
 ```
 Advantages
@@ -268,7 +268,7 @@ DeepSeek
 
 ↓
 
-Qwen
+Kimi
 
 ↓
 
@@ -314,7 +314,7 @@ DeepSeek
 
 -->
 
-Qwen
+Kimi
 
 -->
 
@@ -379,7 +379,7 @@ Analyzes
 
 ### Step 6
 
-Qwen
+Kimi
 
 Analyzes
 
@@ -425,10 +425,10 @@ Vue.js displays AI insights.
 |---------------|----------|
 | Fake Review Detection | DeepSeek |
 | Trust Score | DeepSeek |
-| Review Sentiment | Qwen |
-| Recommendation | Qwen |
-| Product Comparison | Qwen |
-| Shopping Assistant | Qwen |
+| Review Sentiment | Kimi |
+| Recommendation | Kimi |
+| Product Comparison | Kimi |
+| Shopping Assistant | Kimi |
 | Chinese Review | Tencent Hunyuan |
 | Review Summary | Tencent Hunyuan |
 
@@ -464,7 +464,7 @@ Return JSON.
 
 ---
 
-## Qwen Prompt
+## Kimi Prompt
 
 ```
 Analyze customer sentiment.
@@ -580,7 +580,7 @@ Fallback
 
 -->
 
-Qwen
+Kimi
 
 -->
 
@@ -687,6 +687,6 @@ Compared with traditional AI systems:
 
 The Multi-LLM Architecture represents the technological foundation of VeriCart AI.
 
-By orchestrating DeepSeek, Qwen, and Tencent Hunyuan through a dedicated AI Gateway, the platform delivers trustworthy, explainable, and intelligent shopping assistance while remaining scalable, secure, and extensible.
+By orchestrating DeepSeek, Kimi, and Tencent Hunyuan through a dedicated AI Gateway, the platform delivers trustworthy, explainable, and intelligent shopping assistance while remaining scalable, secure, and extensible.
 
 This architecture transforms Artificial Intelligence from a simple recommendation engine into the central decision-support system of the platform, enabling customers to shop with greater confidence and transparency.

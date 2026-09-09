@@ -48,7 +48,7 @@
 ### Tech Stack
 - Frontend: Vue.js 3 + Element Plus + Pinia + Vite
 - Backend: Spring Boot 3.2 + MyBatis + MySQL 8.0
-- AI: Multi-LLM Gateway (DeepSeek + Qwen + Hunyuan)
+- AI: Multi-LLM Gateway (DeepSeek + Kimi + Hunyuan)
 - Auth: JWT + Spring Security + BCrypt
 - DevOps: Docker + Docker Compose + Nginx
 

@@ -215,7 +215,7 @@ Database
 MySQL
 AI
 DeepSeek
-Qwen
+Kimi
 Tencent Hunyuan
 Deployment
 Docker

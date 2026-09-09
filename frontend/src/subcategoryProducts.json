@@ -1,0 +1,394 @@
+[
+  {
+    "sub": "Accessories",
+    "productName": "Coach Tabby Shoulder Bag",
+    "image": "/images/coach-tabby-shoulder-bag.png",
+    "productId": 190314,
+    "price": 4299.0
+  },
+  {
+    "sub": "Activewear",
+    "productName": "Nike Dri-FIT Training Tee",
+    "image": "/images/nike-dri-fit-training-tee.webp",
+    "productId": 190324,
+    "price": 199.0
+  },
+  {
+    "sub": "Baby Food & Formula",
+    "productName": "Aptamil Gold+ Formula Stage 3",
+    "image": "/images/aptamil-gold-formula-stage-3.webp",
+    "productId": 190340,
+    "price": 299.0
+  },
+  {
+    "sub": "Bags & Luggage",
+    "productName": "Samsonite Air Spinner 55cm",
+    "image": "/images/samsonite-air-spinner-55cm.png",
+    "productId": 190356,
+    "price": 1299.0
+  },
+  {
+    "sub": "Bedding & Towels",
+    "productName": "MUJI Cotton Duvet Cover Set",
+    "image": "/images/muji-cotton-duvet-cover-set.png",
+    "productId": 190318,
+    "price": 599.0
+  },
+  {
+    "sub": "Beverages",
+    "productName": "Coca-Cola Original 330ml",
+    "image": "/images/coca-cola-original-330ml.png",
+    "productId": 190348,
+    "price": 6.0
+  },
+  {
+    "sub": "Books",
+    "productName": "Zero to one",
+    "image": "/images/zero-to-one.png",
+    "productId": null,
+    "price": 49.0
+  },
+  {
+    "sub": "Cameras",
+    "productName": "Canon EOS R6 Mark II",
+    "image": "/images/canon-eos-r6-mark-ii.png",
+    "productId": 10,
+    "price": 15999.0
+  },
+  {
+    "sub": "Camping Supplies",
+    "productName": "Trend",
+    "image": "/images/trend.webp",
+    "productId": null,
+    "price": 299.0
+  },
+  {
+    "sub": "Car Care & Maintenance",
+    "productName": "Turtle Wax Ice Sealant",
+    "image": "/images/turtle-wax-ice-sealant.png",
+    "productId": 190368,
+    "price": 99.0
+  },
+  {
+    "sub": "Car Electronics",
+    "productName": "Xiaomi 100W Car Charger",
+    "image": "/images/xiaomi-100w-car-charger.webp",
+    "productId": 190364,
+    "price": 129.0
+  },
+  {
+    "sub": "Car Interior",
+    "productName": "WeatherTech DigitalFit Floor Mats",
+    "image": "/images/weathertech-digitalfit-floor-mats.png",
+    "productId": 190366,
+    "price": 899.0
+  },
+  {
+    "sub": "Cleaning Appliances",
+    "productName": "Dyson V15 Detect Vacuum",
+    "image": "/images/dyson-v15-detect-vacuum.webp",
+    "productId": 190360,
+    "price": 5490.0
+  },
+  {
+    "sub": "Cleaning Supplies",
+    "productName": "cleaner",
+    "image": "/images/cleaner.png",
+    "productId": null,
+    "price": 39.0
+  },
+  {
+    "sub": "Computer Accessories",
+    "productName": "Keychron K8 Pro Mechanical Keyboard",
+    "image": "/images/keychron-k8-pro-mechanical-keyboard.png",
+    "productId": 190376,
+    "price": 599.0
+  },
+  {
+    "sub": "Craft Supplies",
+    "productName": "Key Ring (wood)",
+    "image": "/images/key-ring-wood.webp",
+    "productId": null,
+    "price": 29.0
+  },
+  {
+    "sub": "Dairy & Bakery",
+    "productName": "Oreo",
+    "image": "/images/oreo.png",
+    "productId": null,
+    "price": 15.0
+  },
+  {
+    "sub": "Diapers & Wipes",
+    "productName": "Pampers Baby-Dry Diapers M",
+    "image": "/images/pampers-baby-dry-diapers-m.png",
+    "productId": 190342,
+    "price": 159.0
+  },
+  {
+    "sub": "Fitness Equipment",
+    "productName": "Decathlon Yoga Mat 10mm",
+    "image": "/images/decathlon-yoga-mat-10mm.webp",
+    "productId": 190322,
+    "price": 129.0
+  },
+  {
+    "sub": "Fruits & Vegetables",
+    "productName": "Dole Bananas 1kg",
+    "image": "/images/dole-bananas-1kg.webp",
+    "productId": 190350,
+    "price": 12.0
+  },
+  {
+    "sub": "Furniture",
+    "productName": "IKEA KALLAX Shelf",
+    "image": "/images/ikea-kallax-shelf.webp",
+    "productId": 18,
+    "price": 699.0
+  },
+  {
+    "sub": "Hair & Body Care",
+    "productName": "Dove Nourishing Shampoo 450ml",
+    "image": "/images/dove-nourishing-shampoo-450ml.png",
+    "productId": 190338,
+    "price": 49.0
+  },
+  {
+    "sub": "Headphones",
+    "productName": "Sony WH-1000XM5",
+    "image": "/images/sony-wh-1000xm5.png",
+    "productId": 3,
+    "price": 2499.0
+  },
+  {
+    "sub": "Home Decor",
+    "productName": "IKEA LEDBERG Table Lamp",
+    "image": "/images/ikea-ledberg-table-lamp.png",
+    "productId": 190320,
+    "price": 129.0
+  },
+  {
+    "sub": "Kids' Clothing",
+    "productName": "Gap Kids Logo Tee",
+    "image": "/images/gap-kids-logo-tee.png",
+    "productId": 190382,
+    "price": 149.0
+  },
+  {
+    "sub": "Kitchen Appliances",
+    "productName": "Philips Air Fryer XXL HD9860",
+    "image": "/images/philips-air-fryer-xxl-hd9860.webp",
+    "productId": 190358,
+    "price": 1999.0
+  },
+  {
+    "sub": "Kitchenware",
+    "productName": "Le Creuset Round Dutch Oven 24cm",
+    "image": "/images/le-creuset-round-dutch-oven-24cm.webp",
+    "productId": 190316,
+    "price": 2899.0
+  },
+  {
+    "sub": "Laptops",
+    "productName": "MacBook Air M3",
+    "image": "/images/macbook-air-m3.png",
+    "productId": 2,
+    "price": 7999.0
+  },
+  {
+    "sub": "Large Appliances",
+    "productName": "LG Door-in-Door Refrigerator",
+    "image": "/images/lg-door-in-door-refrigerator.webp",
+    "productId": 190362,
+    "price": 9999.0
+  },
+  {
+    "sub": "Makeup & Fragrance",
+    "productName": "MAC Matte Lipstick",
+    "image": "/images/mac-matte-lipstick.png",
+    "productId": 190336,
+    "price": 219.0
+  },
+  {
+    "sub": "Maternity & Baby Gear",
+    "productName": "Cloths Set",
+    "image": "/images/cloths-set.webp",
+    "productId": null,
+    "price": 199.0
+  },
+  {
+    "sub": "Meat & Seafood",
+    "productName": "Beef and Fish",
+    "image": "/images/beef-and-fish.webp",
+    "productId": null,
+    "price": 129.0
+  },
+  {
+    "sub": "Men's Clothing",
+    "productName": "Nike Air Max 270",
+    "image": "/images/nike-air-max-270.png",
+    "productId": 5,
+    "price": 150.0
+  },
+  {
+    "sub": "Men's Shoes",
+    "productName": "Clarks Desert Boot",
+    "image": "/images/clarks-desert-boot.png",
+    "productId": 190354,
+    "price": 1299.0
+  },
+  {
+    "sub": "Mobile Accessories",
+    "productName": "Anker 30W Nano GaN Charger",
+    "image": "/images/anker-30w-nano-gan-charger.png",
+    "productId": 190374,
+    "price": 129.0
+  },
+  {
+    "sub": "Office Supplies",
+    "productName": "Sticky Notes",
+    "image": "/images/sticky-notes.webp",
+    "productId": null,
+    "price": 19.0
+  },
+  {
+    "sub": "Outdoor Gear",
+    "productName": "The North Face Resolve Rain Jacket",
+    "image": "/images/the-north-face-resolve-rain-jacket.webp",
+    "productId": 190326,
+    "price": 1299.0
+  },
+  {
+    "sub": "Pantry Essentials",
+    "productName": "Masala",
+    "image": "/images/masala.webp",
+    "productId": null,
+    "price": 39.0
+  },
+  {
+    "sub": "Personal Care Appliances",
+    "productName": "oral care",
+    "image": "/images/oral-care.webp",
+    "productId": null,
+    "price": 199.0
+  },
+  {
+    "sub": "Pet Food",
+    "productName": "Royal Canin Adult Dog Food 2kg",
+    "image": "/images/royal-canin-adult-dog-food-2kg.png",
+    "productId": 190370,
+    "price": 499.0
+  },
+  {
+    "sub": "Pet Grooming & Beds",
+    "productName": "Thermo",
+    "image": "/images/thermo.webp",
+    "productId": null,
+    "price": 159.0
+  },
+  {
+    "sub": "Pet Toys & Accessories",
+    "productName": "KONG Classic Dog Toy",
+    "image": "/images/kong-classic-dog-toy.webp",
+    "productId": 190372,
+    "price": 89.0
+  },
+  {
+    "sub": "School Supplies",
+    "productName": "High School Item",
+    "image": "/images/high-school-item.webp",
+    "productId": null,
+    "price": 49.0
+  },
+  {
+    "sub": "Shoes",
+    "productName": "Nike Air Force 1",
+    "image": "/images/nike-air-force-1.png",
+    "productId": 17,
+    "price": 799.0
+  },
+  {
+    "sub": "Skincare",
+    "productName": "L'Oreal Paris Revitalift Serum 30ml",
+    "image": "/images/l-oreal-paris-revitalift-serum-30ml.png",
+    "productId": 190334,
+    "price": 329.0
+  },
+  {
+    "sub": "Smart Devices",
+    "productName": "Xiaomi Smart Speaker 2",
+    "image": "/images/xiaomi-smart-speaker-2.png",
+    "productId": 190378,
+    "price": 199.0
+  },
+  {
+    "sub": "Smart Watches",
+    "productName": "Apple Watch Series 9",
+    "image": "/images/apple-watch-series-9.webp",
+    "productId": 11,
+    "price": 2999.0
+  },
+  {
+    "sub": "Smartphones",
+    "productName": "Samsung Galaxy S24",
+    "image": "/images/samsung-galaxy-s24.webp",
+    "productId": 4,
+    "price": 5499.0
+  },
+  {
+    "sub": "Snacks",
+    "productName": "Lay's Classic Potato Chips",
+    "image": "/images/lay-s-classic-potato-chips.webp",
+    "productId": 190346,
+    "price": 15.0
+  },
+  {
+    "sub": "Sports Shoes",
+    "productName": "Nike Air Force 1 '07",
+    "image": "/images/nike-air-force-1-07.webp",
+    "productId": 190386,
+    "price": 799.0
+  },
+  {
+    "sub": "Storage & Organization",
+    "productName": "IKEA SAMLA Storage Box 45L",
+    "image": "/images/ikea-samla-storage-box-45l.png",
+    "productId": 190384,
+    "price": 69.0
+  },
+  {
+    "sub": "Tablets",
+    "productName": "iPad Air M2",
+    "image": "/images/ipad-air-m2.png",
+    "productId": 9,
+    "price": 4799.0
+  },
+  {
+    "sub": "Toys & Games",
+    "productName": "LEGO City Fire Station 60320",
+    "image": "/images/lego-city-fire-station-60320.png",
+    "productId": 190344,
+    "price": 699.0
+  },
+  {
+    "sub": "Underwear & Sleepwear",
+    "productName": "Calvin Klein Modern Cotton Underwear",
+    "image": "/images/calvin-klein-modern-cotton-underwear.webp",
+    "productId": 190380,
+    "price": 259.0
+  },
+  {
+    "sub": "Women's Clothing",
+    "productName": "Zara Satin Midi Dress",
+    "image": "/images/zara-satin-midi-dress.png",
+    "productId": 190302,
+    "price": 399.0
+  },
+  {
+    "sub": "Women's Shoes",
+    "productName": "Charles & Keith Pointed Stiletto Heels",
+    "image": "/images/charles-keith-pointed-stiletto-heels.png",
+    "productId": 190352,
+    "price": 499.0
+  }
+]

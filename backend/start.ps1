@@ -5,6 +5,19 @@
 
 $env:JAVA_HOME = "C:\Program Files\Java\jdk-21"
 
+# Load .env (git-ignored) into the process environment so Spring Boot picks up
+# the real LLM keys and AI_MOCK_ENABLED without committing secrets to source.
+if (Test-Path "$PSScriptRoot\.env") {
+    Get-Content "$PSScriptRoot\.env" | ForEach-Object {
+        if ($_ -match '^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$') {
+            $k = $matches[1].Trim()
+            $v = $matches[2].Trim().Trim('"').Trim("'")
+            if ($v -ne '') { Set-Item -Path "env:$k" -Value $v }
+        }
+    }
+    Write-Host "Loaded environment variables from .env"
+}
+
 # Kill any process already on port 8080
 $existing = Get-NetTCPConnection -LocalPort 8080 -ErrorAction SilentlyContinue
 if ($existing) {

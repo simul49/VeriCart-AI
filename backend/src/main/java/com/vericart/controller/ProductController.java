@@ -1,6 +1,7 @@
 package com.vericart.controller;
 
 import com.vericart.common.Result;
+import com.vericart.dto.CategorySectionDTO;
 import com.vericart.dto.ProductRequest;
 import com.vericart.entity.Category;
 import com.vericart.entity.Product;
@@ -46,6 +47,17 @@ public class ProductController {
     @GetMapping("/categories")
     public Result<List<Category>> categories() {
         return Result.success(categoryMapper.findAll());
+    }
+
+    /**
+     * Browse "All Products" grouped by main category → sub-category, with the product
+     * cards for each sub-category. Optional ?categoryId= restricts to one main category.
+     * Products assigned only to a main category (the uncategorised "other" set) are
+     * excluded — this view is strictly per sub-category.
+     */
+    @GetMapping("/products/grouped")
+    public Result<List<CategorySectionDTO>> grouped(@RequestParam(required = false) Long categoryId) {
+        return Result.success(productService.findGroupedBySubcategory(categoryId));
     }
 
     /** Paginated product listing — returns {items,total,page,size,totalPages}. */

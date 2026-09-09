@@ -14,7 +14,7 @@ public interface ProductMapper {
     @Select("SELECT * FROM product WHERE status = 1 ORDER BY created_at DESC")
     List<Product> findAllSimple();
 
-    @Select("SELECT * FROM product WHERE status = 1 AND category_id = #{categoryId} ORDER BY created_at DESC")
+    @Select("SELECT * FROM product WHERE status = 1 AND category_id IN (SELECT id FROM category WHERE id = #{categoryId} OR parent_id = #{categoryId}) ORDER BY created_at DESC")
     List<Product> findByCategory(Long categoryId);
 
     @Select("SELECT * FROM product WHERE status = 1 AND (name LIKE CONCAT('%',#{keyword},'%') OR description LIKE CONCAT('%',#{keyword},'%')) ORDER BY trust_score DESC")
@@ -22,7 +22,7 @@ public interface ProductMapper {
 
     @Select("<script>" +
             "SELECT * FROM product WHERE status = 1 " +
-            "<if test='categoryId != null'>AND category_id = #{categoryId}</if>" +
+            "<if test='categoryId != null'>AND category_id IN (SELECT id FROM category WHERE id = #{categoryId} OR parent_id = #{categoryId})</if>" +
             "<if test='keyword != null and keyword != \"\"'>AND (name LIKE CONCAT('%',#{keyword},'%') OR description LIKE CONCAT('%',#{keyword},'%'))</if>" +
             "ORDER BY " +
             "<choose>" +
@@ -39,7 +39,7 @@ public interface ProductMapper {
 
     @Select("<script>" +
             "SELECT * FROM product WHERE status = 1 " +
-            "<if test='categoryId != null'>AND category_id = #{categoryId}</if>" +
+            "<if test='categoryId != null'>AND category_id IN (SELECT id FROM category WHERE id = #{categoryId} OR parent_id = #{categoryId})</if>" +
             "ORDER BY " +
             "<choose>" +
             "<when test='sortBy == \"price_asc\"'>price ASC</when>" +
@@ -50,13 +50,13 @@ public interface ProductMapper {
             "</script>")
     List<Product> findFiltered(@Param("categoryId") Long categoryId, @Param("sortBy") String sortBy);
 
-    @Insert("INSERT INTO product (name, description, price, stock, category_id, brand, images, specifications, seller_id, status) " +
-            "VALUES (#{name}, #{description}, #{price}, #{stock}, #{categoryId}, #{brand}, #{images}, #{specifications}, #{sellerId}, #{status})")
+    @Insert("INSERT INTO product (name, description, price, stock, category_id, brand, images, specifications, external_url, variants, seller_id, status) " +
+            "VALUES (#{name}, #{description}, #{price}, #{stock}, #{categoryId}, #{brand}, #{images}, #{specifications}, #{externalUrl}, #{variants}, #{sellerId}, #{status})")
     @Options(useGeneratedKeys = true, keyProperty = "id")
     int insert(Product product);
 
     @Update("UPDATE product SET name=#{name}, description=#{description}, price=#{price}, stock=#{stock}, " +
-            "category_id=#{categoryId}, brand=#{brand}, images=#{images}, specifications=#{specifications} WHERE id=#{id}")
+            "category_id=#{categoryId}, brand=#{brand}, images=#{images}, specifications=#{specifications}, external_url=#{externalUrl}, variants=#{variants} WHERE id=#{id}")
     int update(Product product);
 
     @Update("UPDATE product SET status = #{status} WHERE id = #{id}")
@@ -75,7 +75,7 @@ public interface ProductMapper {
 
     @Select("<script>" +
             "SELECT COUNT(*) FROM product WHERE status = 1 " +
-            "<if test='categoryId != null'>AND category_id = #{categoryId}</if>" +
+            "<if test='categoryId != null'>AND category_id IN (SELECT id FROM category WHERE id = #{categoryId} OR parent_id = #{categoryId})</if>" +
             "<if test='keyword != null and keyword != \"\"'>AND (name LIKE CONCAT('%',#{keyword},'%') OR description LIKE CONCAT('%',#{keyword},'%'))</if>" +
             "</script>")
     long countFiltered(@Param("categoryId") Long categoryId, @Param("keyword") String keyword);

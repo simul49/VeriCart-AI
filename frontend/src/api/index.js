@@ -63,6 +63,8 @@ export const productApi = {
   update: (id, data) => api.put(`/seller/products/${id}`, data),
   delete: (id) => api.delete(`/seller/products/${id}`),
   categories: () => api.get('/categories'),
+  // Browse "All Products" grouped by main → sub category, with product cards per sub-category
+  grouped: (params) => api.get('/products/grouped', { params }),
   // Paginated listing → {items,total,page,size,totalPages}
   page: (params) => api.get('/products/page', { params }),
   // FR-057 comparison

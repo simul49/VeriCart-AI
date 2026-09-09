@@ -45,7 +45,7 @@
 <script setup>
 const pipeline = [
   { icon: '🧠', model: 'DeepSeek', role: 'Sentiment analysis & fake-review detection. The core judge of review authenticity.' },
-  { icon: '🌐', model: 'Qwen (Alibaba)', role: 'Topic extraction and positive-ratio scoring across the whole review set.' },
+  { icon: '🌐', model: 'Kimi (Moonshot)', role: 'Topic extraction and positive-ratio scoring across the whole review set.' },
   { icon: '🔄', model: 'Hunyuan (Tencent)', role: 'Fallback and cross-checking. Steps in automatically if another provider fails.' }
 ]
 

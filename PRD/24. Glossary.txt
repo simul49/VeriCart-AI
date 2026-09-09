@@ -134,7 +134,7 @@ A machine learning model trained on large text datasets to understand and genera
 Examples used in VeriCart AI:
 
 - DeepSeek
-- Qwen
+- Kimi
 - Tencent Hunyuan
 
 ---

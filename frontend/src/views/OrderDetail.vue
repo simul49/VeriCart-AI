@@ -20,7 +20,7 @@
       </div>
       <div style="text-align:right">
         <div style="font-size:var(--font-xs);color:var(--text-muted)">Total Amount</div>
-        <div style="font-size:var(--font-3xl);font-weight:800;color:var(--primary)">${{ order.totalAmount }}</div>
+        <div style="font-size:var(--font-3xl);font-weight:800;color:var(--primary)">¥{{ order.totalAmount }}</div>
       </div>
     </div>
 
@@ -68,7 +68,7 @@
           </div>
           <div style="display:flex;justify-content:space-between;padding:8px 0;border-top:1px solid var(--border-light);margin-top:4px;font-weight:700;font-size:var(--font-base);color:var(--text)">
             <span>Total</span>
-            <span style="color:var(--primary)">${{ order.totalAmount }}</span>
+            <span style="color:var(--primary)">¥{{ order.totalAmount }}</span>
           </div>
         </div>
       </div>
@@ -90,8 +90,8 @@
           </div>
         </div>
         <div style="text-align:right">
-          <div style="font-size:var(--font-lg);font-weight:700;color:var(--primary)">${{ (item.price * item.quantity).toFixed(2) }}</div>
-          <div style="font-size:var(--font-xs);color:var(--text-muted)">${{ item.price }} each</div>
+          <div style="font-size:var(--font-lg);font-weight:700;color:var(--primary)">¥{{ (item.price * item.quantity).toFixed(2) }}</div>
+          <div style="font-size:var(--font-xs);color:var(--text-muted)">¥{{ item.price }} each</div>
         </div>
       </div>
     </div>

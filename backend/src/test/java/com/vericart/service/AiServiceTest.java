@@ -1,6 +1,7 @@
 package com.vericart.service;
 
 import com.vericart.ai.AiGateway;
+import com.vericart.ai.AiMockService;
 import com.vericart.dto.AiChatResponse;
 import com.vericart.entity.Product;
 import com.vericart.entity.Review;
@@ -27,6 +28,7 @@ import static org.mockito.Mockito.*;
 class AiServiceTest {
 
     @Mock private AiGateway aiGateway;
+    @Mock private AiMockService mockService; // conversational safety-net fallback
     @Mock private ReviewMapper reviewMapper;
     @Mock private ProductMapper productMapper;
     @Mock private ReviewService reviewService;
@@ -135,7 +137,7 @@ class AiServiceTest {
     void shouldChat() {
         when(productMapper.findById(1L)).thenReturn(product);
         when(reviewMapper.findByProductId(1L)).thenReturn(List.of());
-        when(aiGateway.chat(eq(1L), eq("Test Phone"), eq("Is it good?"), anyList()))
+        when(aiGateway.chat(eq(1L), eq("Test Phone"), eq("Is it good?"), anyList(), anyList()))
                 .thenReturn(new AiChatResponse("Yes, highly recommended!", "qwen-plus", 1L));
 
         com.vericart.dto.AiChatRequest request = new com.vericart.dto.AiChatRequest();
@@ -146,5 +148,45 @@ class AiServiceTest {
 
         assertEquals("Yes, highly recommended!", response.getAnswer());
         assertEquals("qwen-plus", response.getModel());
+    }
+
+    @Test
+    @DisplayName("Should fall back to conversational reply when live LLM fails (never goes silent)")
+    void shouldFallbackOnChatFailure() {
+        when(productMapper.findById(1L)).thenReturn(product);
+        when(reviewMapper.findByProductId(1L)).thenReturn(List.of());
+        when(aiGateway.chat(eq(1L), eq("Test Phone"), eq("hi"), anyList(), anyList()))
+                .thenThrow(new RuntimeException("DeepSeek API down"));
+        when(mockService.chat(eq("Test Phone"), eq("hi"), anyList()))
+                .thenReturn("Hi! I see you're looking at Test Phone 🙂");
+
+        com.vericart.dto.AiChatRequest request = new com.vericart.dto.AiChatRequest();
+        request.setProductId(1L);
+        request.setQuestion("hi");
+
+        AiChatResponse response = aiService.chat(1L, request);
+
+        assertEquals("Hi! I see you're looking at Test Phone 🙂", response.getAnswer());
+        assertEquals("fallback", response.getModel());
+        assertEquals(1L, response.getProductId());
+    }
+
+    @Test
+    @DisplayName("General chat should fall back to conversational reply on LLM failure (e.g., greeting)")
+    void shouldFallbackOnGeneralChatFailure() {
+        List<Map<String, Object>> ctx = List.of(
+                Map.of("id", 1, "name", "Phone X", "price", 699.0, "rating", 4.7, "trustScore", 92)
+        );
+        when(productMapper.findAll(anyInt(), anyInt(), any(), any(), any())).thenReturn(java.util.Collections.emptyList());
+        when(aiGateway.generalChat(eq("hi"), anyList(), anyList()))
+                .thenThrow(new RuntimeException("DeepSeek API down"));
+        when(mockService.generalChat(eq("hi"), anyList()))
+                .thenReturn("Hi there! 👋 I'm VeriCart AI, your shopping assistant.");
+
+        AiChatResponse response = aiService.generalChat(1L, "hi", null);
+
+        assertEquals("Hi there! 👋 I'm VeriCart AI, your shopping assistant.", response.getAnswer());
+        assertEquals("fallback", response.getModel());
+        assertNull(response.getProductId());
     }
 }

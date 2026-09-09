@@ -11,6 +11,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -95,7 +96,85 @@ public class DeepSeekClient {
         return parseJsonResponse(response);
     }
 
-    private String callAPI(String systemPrompt, String userMessage) {
+    /**
+     * Product-scoped chat — used as the fallback provider when Kimi is unavailable.
+     */
+    public String chat(String productName, String question, List<Map<String, Object>> reviews, List<Map<String, String>> history) {
+        if (mockService.isEnabled()) {
+            log.debug("[DeepSeek Mock] Simulating chat");
+            return mockService.chat(productName, question, reviews);
+        }
+
+        String systemPrompt = """
+            You are VeriCart AI, a friendly and knowledgeable shopping assistant — behave like
+            a real conversational agent (e.g., DeepSeek Chat, Kimi, ChatGPT).
+
+            Rules:
+            • Answer ANY question the customer asks — product, shopping, general knowledge, or
+              small talk. Never give a robotic canned response.
+            • When they greet you (hi/hello/hey), reply with a warm, natural greeting and
+              briefly offer what you can help with. Vary your opening each time.
+            • When the question is about THIS product, ground your answer in the real review
+              data below — cite themes (battery, quality, value, comfort, etc.) and be specific.
+              If reviews are mixed, say so honestly.
+            • Keep replies concise and natural (1 sentence for a simple greeting; 2–5 sentences
+              for normal Q&A; a short list only when truly helpful).
+            • Never invent specs, prices, or claims not supported by the data. If unsure, say so.
+            • Do NOT start every reply with the same opening line. Vary phrasing.
+            """;
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("Product: ").append(productName).append("\n");
+        sb.append("Customer Question: ").append(question).append("\n");
+        sb.append("Available Reviews:\n");
+        for (int i = 0; i < Math.min(reviews.size(), 15); i++) {
+            Map<String, Object> r = reviews.get(i);
+            sb.append("- Rating ").append(r.get("rating")).append("/5: ").append(r.get("content")).append("\n");
+        }
+
+        return callAPIWithHistory(systemPrompt, sb.toString(), history);
+    }
+
+    /**
+     * General (no-product) chat — fallback provider when Kimi is unavailable.
+     */
+    public String generalChat(String question, List<Map<String, Object>> productContext, List<Map<String, String>> history) {
+        if (mockService.isEnabled()) {
+            log.debug("[DeepSeek Mock] Simulating general chat");
+            return mockService.generalChat(question, productContext);
+        }
+
+        String systemPrompt = """
+            You are VeriCart AI, a friendly shopping-assistant agent. You can chat about ANYTHING
+            — general questions, advice, small talk — AND help the user find and compare products
+            in this store.
+
+            Rules:
+            • Greet naturally and VARY your reply each time. Never repeat the same canned opener.
+              Offer what you can help with (shopping, comparisons, recommendations, trust,
+              reviews, returns, general chat).
+            • For shopping questions, ground answers in the catalog list provided — name, price,
+              rating, trust score of the most relevant items. Be honest about trade-offs.
+            • For non-shopping questions, still help conversationally and briefly, then gently
+              offer to relate it back to shopping if useful.
+            • Keep replies concise (2–5 sentences). Warm, natural tone. No robotic templates.
+            • Never invent product details not in the catalog. If you don't know, say so.
+            """;
+
+        StringBuilder sb = new StringBuilder("Customer Question: ").append(question).append("\n\n");
+        sb.append("Available Products in Store:\n");
+        for (Map<String, Object> p : productContext) {
+            sb.append("- ").append(p.get("name"))
+              .append(" | $").append(p.get("price"))
+              .append(" | Rating: ").append(p.get("rating"))
+              .append("/5 | Trust Score: ").append(p.get("trustScore") != null ? p.get("trustScore") : "N/A")
+              .append("\n");
+        }
+
+        return callAPIWithHistory(systemPrompt, sb.toString(), history);
+    }
+
+    private String doCall(List<Map<String, String>> messages) {
         if (keyIsPlaceholder) {
             throw new RuntimeException("DeepSeek API key is not configured. Set DEEPSEEK_API_KEY env var or enable ai.mock.enabled=true");
         }
@@ -103,10 +182,7 @@ public class DeepSeekClient {
         try {
             Map<String, Object> body = Map.of(
                     "model", model,
-                    "messages", List.of(
-                            Map.of("role", "system", "content", systemPrompt),
-                            Map.of("role", "user", "content", userMessage)
-                    ),
+                    "messages", messages,
                     "temperature", 0.3,
                     "max_tokens", 1000
             );
@@ -144,6 +220,30 @@ public class DeepSeekClient {
         } catch (Exception e) {
             throw new RuntimeException("DeepSeek API call failed: " + e.getMessage(), e);
         }
+    }
+
+    private String callAPI(String systemPrompt, String userMessage) {
+        return doCall(buildMessages(systemPrompt, userMessage, null));
+    }
+
+    private String callAPIWithHistory(String systemPrompt, String userMessage, List<Map<String, String>> history) {
+        return doCall(buildMessages(systemPrompt, userMessage, history));
+    }
+
+    private List<Map<String, String>> buildMessages(String systemPrompt, String userMessage, List<Map<String, String>> history) {
+        List<Map<String, String>> msgs = new ArrayList<>();
+        msgs.add(Map.of("role", "system", "content", systemPrompt));
+        if (history != null) {
+            for (Map<String, String> h : history) {
+                String role = h.get("role");
+                String content = h.get("content");
+                if (role != null && content != null && !content.isBlank()) {
+                    msgs.add(Map.of("role", role, "content", content));
+                }
+            }
+        }
+        msgs.add(Map.of("role", "user", "content", userMessage));
+        return msgs;
     }
 
     private Map<String, Object> parseJsonResponse(String response) {

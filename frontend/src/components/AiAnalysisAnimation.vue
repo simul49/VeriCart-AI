@@ -32,7 +32,7 @@ const props = defineProps({
 
 const steps = [
   { model: 'DeepSeek', task: 'Fake-review detection & authenticity' },
-  { model: 'Qwen', task: 'Sentiment & emotion analysis' },
+  { model: 'Kimi', task: 'Sentiment & emotion analysis' },
   { model: 'Hunyuan', task: 'Review summarisation' }
 ]
 

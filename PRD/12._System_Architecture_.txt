@@ -34,10 +34,10 @@ MyBatis --> MySQL
 Service --> Gateway
 Gateway["AI Gateway"]
 Gateway --> DeepSeek
-Gateway --> Qwen
+Gateway --> Kimi
 Gateway --> Hunyuan
 DeepSeek["DeepSeek API"]
-Qwen["Qwen API"]
+Kimi["Kimi API"]
 Hunyuan["Tencent Hunyuan API"]
 ```
 ---
@@ -172,7 +172,7 @@ Review
 Review --> AI
 AI["AI Gateway"]
 AI --> DeepSeek
-AI --> Qwen
+AI --> Kimi
 AI --> Hunyuan
 ```
 Purpose
@@ -188,7 +188,7 @@ Responsible for
 - Trust Score Analysis
 - Reasoning
 ---
-## Qwen
+## Kimi
 Responsible for
 - Recommendation
 - Sentiment Analysis
@@ -208,8 +208,8 @@ Vue->>Spring: REST API
 Spring->>AI Gateway: Analyze Review
 AI Gateway->>DeepSeek: Fake Review
 DeepSeek-->>Gateway: Result
-AI Gateway->>Qwen: Sentiment
-Qwen-->>Gateway: Result
+AI Gateway->>Kimi: Sentiment
+Kimi-->>Gateway: Result
 AI Gateway->>Hunyuan: Summary
 Hunyuan-->>Gateway: Result
 Gateway-->>Spring: AI Result
@@ -270,7 +270,7 @@ MySQL
 AI Gateway
 ↓
 DeepSeek
-Qwen
+Kimi
 Tencent Hunyuan
 ```
 Docker Containers
@@ -356,12 +356,12 @@ MySQL
 Docker
 ↓
 DeepSeek
-Qwen
+Kimi
 Tencent Hunyuan
 ```
 ---
 # 13.18 Chapter Summary
 VeriCart AI adopts a modern layered software architecture that separates presentation, business logic, data access, and Artificial Intelligence into independent modules.
 The architecture enables secure, scalable, and maintainable software development while supporting future AI expansion.
-The introduction of a dedicated AI Gateway allows DeepSeek, Qwen, and Tencent Hunyuan to collaborate efficiently without tightly coupling AI services to business logic.
+The introduction of a dedicated AI Gateway allows DeepSeek, Kimi, and Tencent Hunyuan to collaborate efficiently without tightly coupling AI services to business logic.
 This architecture establishes the technical foundation for the remaining chapters, including Database Design, API Specification, AI Architecture, Deployment, and Software Testing.

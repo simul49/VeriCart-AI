@@ -36,7 +36,7 @@
 <script setup>
 const steps = [
   { icon: '🔍', title: 'Search & Discover', text: 'Browse a curated catalogue of 20+ products. Each listing shows its live AI Trust Score, so you can compare items on trustworthiness as well as price.' },
-  { icon: '🤖', title: 'AI Review Analysis', text: 'When you open a product, our multi-LLM pipeline (DeepSeek + Qwen + Hunyuan) analyses every review — detecting fake or paid reviews, extracting key topics like battery life or build quality, and summarising what real buyers say.' },
+  { icon: '🤖', title: 'AI Review Analysis', text: 'When you open a product, our multi-LLM pipeline (DeepSeek + Kimi + Hunyuan) analyses every review — detecting fake or paid reviews, extracting key topics like battery life or build quality, and summarising what real buyers say.' },
   { icon: '🛡️', title: 'Trusted Rating', text: 'Fake reviews are removed from the calculation. You see both the raw average rating and the AI-trusted rating, so a product can never inflate its score with purchased reviews.' },
   { icon: '🛒', title: 'Shop Securely', text: 'Add to cart, check out with simulated payment, and track your order status through fulfilment. Verified purchases get a special badge on their reviews.' },
   { icon: '⭐', title: 'Review with Impact', text: 'After your order is delivered, submit your own review. The AI analyses it in seconds, and if you bought the product, your review is marked as a verified purchase.' },

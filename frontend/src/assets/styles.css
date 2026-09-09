@@ -3,12 +3,27 @@
    Deep-ink surfaces · confident accent · consistent motion
    ============================================================ */
 :root {
-  /* ---- Brand accent ---- */
-  --primary: #FF4D3D;
-  --primary-hover: #F03524;
-  --primary-dark: #D92B1C;
-  --primary-light: #FFF1EE;
-  --primary-soft: #FFE2DD;
+  /* ---- Brand accent (warm sunset coral — refined for premium feel) ---- */
+  --primary: #FF5A1F;
+  --primary-hover: #E8470F;
+  --primary-dark: #C13A05;
+  --primary-light: #FFF3EC;
+  --primary-soft: #FFE0CE;
+  --primary-glow: rgba(255, 90, 31, 0.35);
+  --primary-grad: linear-gradient(135deg, #FF8A4C 0%, #FF5A1F 50%, #E8340B 100%);
+  --primary-grad-soft: linear-gradient(135deg, #FFF1E6 0%, #FFE0CE 100%);
+
+  /* ---- AI / trust accent (deep indigo — for "Verified · AI" elements) ---- */
+  --ai: #4F46E5;
+  --ai-hover: #4338CA;
+  --ai-light: #EEF0FF;
+  --ai-soft: #DDE0FF;
+  --ai-grad: linear-gradient(135deg, #6366F1 0%, #4338CA 100%);
+
+  /* ---- Premium gold (for verified / premium chips) ---- */
+  --gold: #D4A05A;
+  --gold-light: #FBF3E1;
+  --gold-grad: linear-gradient(135deg, #F6C779 0%, #D4A05A 100%);
 
   /* ---- Ink / neutrals ---- */
   --ink: #0B1220;
@@ -16,6 +31,7 @@
   --ink-700: #1E293B;
   --ink-500: #64748B;
   --ink-400: #94A3B8;
+  --ink-300: #CBD5E1;
   --secondary: #1F2937;
 
   /* ---- Semantic ---- */
@@ -24,13 +40,14 @@
   --warning: #F59E0B;
   --warning-light: #FEF4E6;
   --danger: #EF4444;
-  --info: #2563EB;
-  --trust: #2563EB;
+  --info: #4F46E5;
+  --trust: #4F46E5;
 
   /* ---- Surfaces ---- */
   --bg: #F6F7F9;
   --bg-secondary: #FFFFFF;
   --surface-muted: #F1F3F7;
+  --surface-cream: #FAF7F4;
 
   /* ---- Text ---- */
   --text: #0F172A;
@@ -47,7 +64,8 @@
   --shadow-md: 0 4px 16px rgba(15, 23, 42, 0.08);
   --shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.10);
   --shadow-xl: 0 24px 56px rgba(15, 23, 42, 0.15);
-  --shadow-brand: 0 10px 28px rgba(255, 77, 61, 0.30);
+  --shadow-brand: 0 10px 28px rgba(255, 90, 31, 0.32);
+  --shadow-ai: 0 10px 28px rgba(79, 70, 229, 0.28);
 
   /* ---- Radius ---- */
   --radius-sm: 8px;
@@ -74,7 +92,7 @@
   --transition-slow: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 
   /* ---- Layout ---- */
-  --maxw: 1280px;
+  --maxw: 1440px;
 }
 
 /* ============================================================
@@ -191,7 +209,7 @@ a { text-decoration: none; color: var(--text); }
 .btn-primary:hover:not(:disabled) {
   background: var(--primary-hover);
   transform: translateY(-2px);
-  box-shadow: 0 14px 34px rgba(255, 77, 61, 0.38);
+  box-shadow: 0 14px 34px rgba(255, 90, 31, 0.40);
 }
 .btn-primary:active:not(:disabled) { transform: translateY(0); }
 
@@ -326,7 +344,7 @@ a { text-decoration: none; color: var(--text); }
   background: var(--primary); color: #fff; padding: 4px 10px;
   border-radius: var(--radius-sm); font-size: var(--font-xs);
   font-weight: 800; z-index: 2;
-  box-shadow: 0 2px 8px rgba(255, 77, 61, 0.35);
+  box-shadow: 0 2px 8px rgba(255, 90, 31, 0.38);
 }
 .product-card .img-wrapper .wishlist-btn {
   position: absolute; top: 12px; right: 12px;
@@ -355,7 +373,7 @@ a { text-decoration: none; color: var(--text); }
 .product-card .img-fallback {
   position: absolute; top: 0; left: 0; width: 100%; height: 100%;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  background: linear-gradient(135deg, #FF6A5A 0%, #FF4D3D 100%);
+  background: var(--primary-grad);
   color: #fff; gap: 8px;
 }
 .product-card .fallback-icon { font-size: 40px; }
@@ -403,8 +421,8 @@ a { text-decoration: none; color: var(--text); }
    ============================================================ */
 .hero {
   background:
-    radial-gradient(1200px 400px at 12% 10%, rgba(255, 77, 61, 0.28), transparent 60%),
-    radial-gradient(900px 380px at 88% 90%, rgba(37, 99, 235, 0.30), transparent 62%),
+    radial-gradient(1200px 400px at 12% 10%, rgba(255, 90, 31, 0.30), transparent 60%),
+    radial-gradient(900px 380px at 88% 90%, rgba(79, 70, 229, 0.30), transparent 62%),
     linear-gradient(135deg, #0B1220 0%, #16233D 100%);
   color: #fff;
   padding: 88px 24px 96px;
@@ -421,7 +439,7 @@ a { text-decoration: none; color: var(--text); }
   margin: 0 auto;
 }
 .hero h1 .accent {
-  background: linear-gradient(100deg, #FF8A5B, #FF4D3D 55%, #FFC15B);
+  background: linear-gradient(100deg, #FFA876, #FF5A1F 55%, #F6C779);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -557,7 +575,7 @@ a { text-decoration: none; color: var(--text); }
    AI feature card
    ============================================================ */
 .ai-card {
-  background: linear-gradient(135deg, #FFF6F4 0%, #FFEDE9 100%);
+  background: var(--primary-grad-soft);
   border-radius: var(--radius-xl);
   padding: 36px 28px;
   border: 1px solid var(--primary-soft);
@@ -605,7 +623,7 @@ a { text-decoration: none; color: var(--text); }
 .product-gallery .thumb:hover { opacity: 0.82; }
 
 .product-price-section {
-  background: linear-gradient(135deg, #FFF6F4 0%, #FFEDE9 100%);
+  background: var(--primary-grad-soft);
   border-radius: var(--radius-lg);
   padding: 22px;
   margin: 16px 0;
@@ -630,7 +648,7 @@ a { text-decoration: none; color: var(--text); }
 }
 .buy-now-btn {
   flex: 1 1 200px; height: 52px; border-radius: var(--radius-full);
-  background: linear-gradient(135deg, #FF6A5A, #FF4D3D);
+  background: var(--primary-grad);
   color: #fff; border: none; font-size: var(--font-lg); font-weight: 700;
   cursor: pointer; transition: all var(--transition);
   font-family: inherit;
@@ -787,7 +805,7 @@ a { text-decoration: none; color: var(--text); }
 .ai-chat { position: fixed; bottom: 24px; right: 24px; z-index: 900; }
 .ai-chat-btn {
   width: 58px; height: 58px; border-radius: 50%;
-  background: linear-gradient(135deg, #FF6A5A, #FF4D3D);
+  background: var(--primary-grad);
   color: #fff; border: none; font-size: 24px; cursor: pointer;
   box-shadow: var(--shadow-brand);
   display: flex; align-items: center; justify-content: center;
@@ -804,7 +822,7 @@ a { text-decoration: none; color: var(--text); }
   border: 1px solid var(--border-light);
 }
 .chat-header {
-  background: linear-gradient(135deg, #FF6A5A, #FF4D3D);
+  background: var(--primary-grad);
   color: #fff; padding: 16px 20px;
   font-weight: 700; display: flex; justify-content: space-between; align-items: center;
 }
@@ -825,7 +843,7 @@ a { text-decoration: none; color: var(--text); }
 .chat-input .el-textarea__inner:focus {
   background: #fff !important;
   border-color: var(--primary) !important;
-  box-shadow: 0 0 0 3px rgba(255, 77, 61, 0.12) !important;
+  box-shadow: 0 0 0 3px rgba(255, 90, 31, 0.14) !important;
 }
 
 /* ============================================================
@@ -846,8 +864,8 @@ a { text-decoration: none; color: var(--text); }
   justify-content: space-between;
   color: #fff;
   background:
-    radial-gradient(700px 380px at 20% 18%, rgba(255, 77, 61, 0.30), transparent 60%),
-    radial-gradient(600px 340px at 82% 88%, rgba(37, 99, 235, 0.32), transparent 62%),
+    radial-gradient(700px 380px at 20% 18%, rgba(255, 90, 31, 0.32), transparent 60%),
+    radial-gradient(600px 340px at 82% 88%, rgba(79, 70, 229, 0.32), transparent 62%),
     linear-gradient(135deg, #0B1220 0%, #17253F 100%);
 }
 .auth-hero-logo {
@@ -984,7 +1002,7 @@ a { text-decoration: none; color: var(--text); }
 }
 .el-input__wrapper.is-focus,
 .el-select__wrapper.is-focused {
-  box-shadow: 0 0 0 1px var(--primary) inset, 0 0 0 3px rgba(255, 77, 61, 0.12) !important;
+  box-shadow: 0 0 0 1px var(--primary) inset, 0 0 0 3px rgba(255, 90, 31, 0.14) !important;
 }
 
 .el-card {

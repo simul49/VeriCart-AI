@@ -162,7 +162,7 @@ Each model contributes unique strengths.
 | Model | Primary Strength |
 |---------|-----------------|
 | DeepSeek | Logical reasoning and trust analysis |
-| Qwen | Shopping assistant and recommendation |
+| Kimi | Shopping assistant and recommendation |
 | Tencent Hunyuan | Chinese NLP and multilingual review understanding |
 
 This architecture improves flexibility, maintainability, and AI accuracy.
@@ -354,7 +354,7 @@ AI providers and cloud platforms influence operational costs.
 Examples include:
 
 - DeepSeek
-- Alibaba Cloud (Qwen)
+- Alibaba Cloud (Kimi)
 - Tencent Cloud (Hunyuan)
 
 ---
@@ -460,6 +460,6 @@ The market analysis demonstrates that although modern e-commerce platforms provi
 
 The growth of Artificial Intelligence, particularly Large Language Models, creates an opportunity to redesign online shopping around transparency, explainability, and intelligent decision support.
 
-By combining DeepSeek, Qwen, and Tencent Hunyuan within a Multi-LLM architecture, VeriCart AI addresses a clear market need while remaining aligned with future trends in AI-powered commerce.
+By combining DeepSeek, Kimi, and Tencent Hunyuan within a Multi-LLM architecture, VeriCart AI addresses a clear market need while remaining aligned with future trends in AI-powered commerce.
 
 This market research validates the business case for VeriCart AI and provides the strategic foundation for the competitor analysis and detailed product requirements presented in the following chapters.

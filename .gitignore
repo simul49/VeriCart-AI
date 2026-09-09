@@ -58,6 +58,32 @@ docker-compose.override.yml
 
 # === Temp / scratch files ===
 tmp-*.json
+tmp_*.json
+tmp_*.py
+~$*
+*.err
+*.csv
+*.bak
+*.tsv
+.playwright-cli/
+vt-results.json
+frontend/vt-results.json
+frontend/src/image/
+backend/run-stdout.txt
+backend/run-stderr.txt
+backend/server.err
+backend/backend_run*.err
+backend/chat_req.json
+backend/assignments_preview.csv
+backend/products_dump.csv
+backend/run_backend.bat
+backend/run_backend.ps1
+backend/launch.ps1
+backend/kill_*.ps1
+backend/kill_port.ps1
+backend/*.py
+backend/sql/_*.py
+backend/sql/backup-*.sql
 
 # === IDE / agent session state (never publish to the repo) ===
 .codebuddy/

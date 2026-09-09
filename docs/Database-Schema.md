@@ -144,7 +144,7 @@ Unique: `uk_user_product`.
 | id | BIGINT PK | |
 | target_type | VARCHAR(20) | REVIEW / PRODUCT / RECOMMENDATION |
 | target_id | BIGINT | polymorphic target |
-| ai_model | VARCHAR(50) | deepseek / qwen / hunyuan |
+| ai_model | VARCHAR(50) | deepseek / kimi / hunyuan |
 | task | VARCHAR(50) | sentiment / fake_detection / summary / trust_score / recommendation |
 | request / response | TEXT | payloads |
 | processing_time_ms | INT | |

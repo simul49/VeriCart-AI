@@ -26,7 +26,7 @@ public class AiController {
     public Result<AiChatResponse> chat(@RequestBody AiChatRequest request,
                                         @RequestParam(value = "userId", required = false) Long userId) {
         if (request.getProductId() == null && request.getQuestion() != null) {
-            return Result.success(aiService.generalChat(userId, request.getQuestion()));
+            return Result.success(aiService.generalChat(userId, request.getQuestion(), request.getHistory()));
         }
         return Result.success(aiService.chat(userId, request));
     }

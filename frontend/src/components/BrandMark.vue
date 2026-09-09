@@ -11,8 +11,9 @@
       />
       <defs>
         <linearGradient id="bmGrad" x1="4.5" y1="2.5" x2="27.5" y2="30.5">
-          <stop stop-color="#FF7A5A" />
-          <stop offset="1" stop-color="#F03524" />
+          <stop stop-color="#FFA876" />
+          <stop offset="0.55" stop-color="#FF5A1F" />
+          <stop offset="1" stop-color="#E8340B" />
         </linearGradient>
       </defs>
     </svg>

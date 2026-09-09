@@ -22,6 +22,7 @@ class AiGatewayTest {
     @Mock private DeepSeekClient deepSeekClient;
     @Mock private QwenClient qwenClient;
     @Mock private HunyuanClient hunyuanClient;
+    @Mock private KimiClient kimiClient;
 
     @InjectMocks
     private AiGateway aiGateway;
@@ -136,26 +137,88 @@ class AiGatewayTest {
     }
 
     @Test
-    @DisplayName("Chat should route to Qwen")
-    void shouldRouteChatToQwen() {
-        when(qwenClient.chat(anyString(), anyString(), any()))
+    @DisplayName("Chat should route to Kimi when configured")
+    void shouldRouteChatToKimi() {
+        when(kimiClient.isConfigured()).thenReturn(true);
+        when(kimiClient.chat(anyString(), anyString(), any(), any()))
                 .thenReturn("Here's my recommendation...");
 
-        AiChatResponse response = aiGateway.chat(1L, "Phone", "Should I buy?", reviewData);
+        AiChatResponse response = aiGateway.chat(1L, "Phone", "Should I buy?", reviewData, null);
 
         assertEquals("Here's my recommendation...", response.getAnswer());
-        assertEquals("qwen-plus", response.getModel());
+        assertEquals("kimi", response.getModel());
+        verify(kimiClient).chat(anyString(), anyString(), any());
     }
 
     @Test
-    @DisplayName("General chat should route to Qwen")
-    void shouldRouteGeneralChatToQwen() {
-        when(qwenClient.generalChat(anyString(), any()))
+    @DisplayName("Chat should use DeepSeek directly when Kimi is not configured")
+    void shouldUseDeepSeekWhenKimiUnconfigured() {
+        when(kimiClient.isConfigured()).thenReturn(false);
+        when(deepSeekClient.chat(anyString(), anyString(), any(), any()))
+                .thenReturn("Answer from DeepSeek");
+
+        AiChatResponse response = aiGateway.chat(1L, "Phone", "Should I buy?", reviewData, null);
+
+        assertEquals("Answer from DeepSeek", response.getAnswer());
+        assertEquals("deepseek", response.getModel());
+        verify(kimiClient, never()).chat(anyString(), anyString(), any());
+    }
+
+    @Test
+    @DisplayName("Chat should fall back to DeepSeek when Kimi throws")
+    void shouldFallbackChatToDeepSeek() {
+        when(kimiClient.isConfigured()).thenReturn(true);
+        when(kimiClient.chat(anyString(), anyString(), any(), any()))
+                .thenThrow(new RuntimeException("Kimi down"));
+        when(deepSeekClient.chat(anyString(), anyString(), any(), any()))
+                .thenReturn("Fallback answer from DeepSeek");
+
+        AiChatResponse response = aiGateway.chat(1L, "Phone", "Should I buy?", reviewData, null);
+
+        assertEquals("Fallback answer from DeepSeek", response.getAnswer());
+        assertEquals("deepseek", response.getModel());
+    }
+
+    @Test
+    @DisplayName("General chat should route to Kimi when configured")
+    void shouldRouteGeneralChatToKimi() {
+        when(kimiClient.isConfigured()).thenReturn(true);
+        when(kimiClient.generalChat(anyString(), any(), any()))
                 .thenReturn("Let me help you find products...");
 
-        AiChatResponse response = aiGateway.generalChat("cheap laptops", List.of());
+        AiChatResponse response = aiGateway.generalChat("cheap laptops", List.of(), null);
 
-        assertEquals("qwen-plus", response.getModel());
+        assertEquals("kimi", response.getModel());
+        assertNull(response.getProductId());
+        verify(kimiClient).generalChat(anyString(), any());
+    }
+
+    @Test
+    @DisplayName("General chat should use DeepSeek directly when Kimi is not configured")
+    void shouldUseDeepSeekGeneralWhenKimiUnconfigured() {
+        when(kimiClient.isConfigured()).thenReturn(false);
+        when(deepSeekClient.generalChat(anyString(), any(), any()))
+                .thenReturn("General answer from DeepSeek");
+
+        AiChatResponse response = aiGateway.generalChat("cheap laptops", List.of(), null);
+
+        assertEquals("deepseek", response.getModel());
+        assertNull(response.getProductId());
+        verify(kimiClient, never()).generalChat(anyString(), any());
+    }
+
+    @Test
+    @DisplayName("General chat should fall back to DeepSeek when Kimi throws")
+    void shouldFallbackGeneralChatToDeepSeek() {
+        when(kimiClient.isConfigured()).thenReturn(true);
+        when(kimiClient.generalChat(anyString(), any(), any()))
+                .thenThrow(new RuntimeException("Kimi down"));
+        when(deepSeekClient.generalChat(anyString(), any(), any()))
+                .thenReturn("Fallback general answer from DeepSeek");
+
+        AiChatResponse response = aiGateway.generalChat("cheap laptops", List.of(), null);
+
+        assertEquals("deepseek", response.getModel());
         assertNull(response.getProductId());
     }
 }

@@ -62,7 +62,7 @@ Instead of relying on a single AI model, the platform orchestrates multiple spec
 | AI Model | Primary Responsibility |
 |-----------|------------------------|
 | DeepSeek | Fake Review Detection, Trust Score Analysis, Logical Reasoning |
-| Qwen | Sentiment Analysis, Product Recommendation, Shopping Assistant |
+| Kimi | Sentiment Analysis, Product Recommendation, Shopping Assistant |
 | Tencent Hunyuan | Chinese Review Analysis, Multilingual Translation, Review Summarization |
 This collaborative AI architecture enables more accurate analysis than relying on a single general-purpose language model.
 ---
@@ -78,7 +78,7 @@ Spring Boot Backend
 AI Processing Gateway
         │
  ┌───────────────┬───────────────┬────────────────┐
- │ DeepSeek API  │   Qwen API    │ Hunyuan API    │
+ │ DeepSeek API  │   Kimi API    │ Hunyuan API    │
  └───────────────┴───────────────┴────────────────┘
         │
         ▼
@@ -159,7 +159,7 @@ The platform adopts a modern full-stack architecture following frontend-backend 
 - Nginx
 ## AI Technologies
 - DeepSeek API
-- Qwen API
+- Kimi API
 - Tencent Hunyuan API
 ---
 # 1.12 Expected Outcomes
@@ -203,5 +203,5 @@ The project will be considered successful when it achieves the following objecti
 # 1.14 Conclusion
 VeriCart AI represents the next evolution of intelligent e-commerce by combining Software Engineering, Artificial Intelligence, Machine Learning, and Natural Language Processing into a unified trust-driven shopping platform.
 Rather than competing solely on product quantity or pricing, VeriCart AI differentiates itself by providing explainable AI insights, trustworthy review analysis, and personalized purchasing assistance through a Multi-LLM architecture.
-The platform demonstrates how modern AI technologies—including DeepSeek, Qwen, and Tencent Hunyuan—can work collaboratively to solve one of the most significant challenges in online shopping: customer trust.
+The platform demonstrates how modern AI technologies—including DeepSeek, Kimi, and Tencent Hunyuan—can work collaboratively to solve one of the most significant challenges in online shopping: customer trust.
 By integrating advanced AI capabilities with robust software engineering practices, VeriCart AI aims to establish a new standard for intelligent, transparent, and trustworthy digital commerce.

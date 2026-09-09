@@ -119,7 +119,7 @@ Instead of forcing one model to perform every task, VeriCart AI assigns speciali
 | Model | Responsibility |
 |--------|----------------|
 | DeepSeek | Logical reasoning, fake review detection, trust analysis |
-| Qwen | Sentiment analysis, recommendations, shopping assistant |
+| Kimi | Sentiment analysis, recommendations, shopping assistant |
 | Tencent Hunyuan | Chinese language understanding, multilingual translation, review summarization |
 This architecture improves:
 - Accuracy
@@ -188,5 +188,5 @@ The implementation of VeriCart AI is expected to generate several long-term bene
 # 3.10 Chapter Summary
 The rapid evolution of e-commerce has created both opportunities and challenges.
 While customers benefit from increased product availability and convenience, they also face problems related to fake reviews, information overload, and declining trust.
-VeriCart AI addresses these issues by introducing a Multi-LLM intelligent architecture that combines DeepSeek, Qwen, and Tencent Hunyuan to analyze customer reviews, generate explainable Trust Scores, summarize opinions, and provide intelligent shopping assistance.
+VeriCart AI addresses these issues by introducing a Multi-LLM intelligent architecture that combines DeepSeek, Kimi, and Tencent Hunyuan to analyze customer reviews, generate explainable Trust Scores, summarize opinions, and provide intelligent shopping assistance.
 This business background establishes the rationale for developing VeriCart AI and demonstrates how the platform aligns with both current industry needs and the future direction of intelligent e-commerce.

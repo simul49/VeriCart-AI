@@ -413,7 +413,7 @@ AI
 
 DeepSeek
 
-Qwen
+Kimi
 
 Tencent Hunyuan
 

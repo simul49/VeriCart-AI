@@ -75,7 +75,7 @@ Technology Stack
 - MySQL
 - Docker
 - DeepSeek
-- Qwen
+- Kimi
 - Tencent Hunyuan
 
 ---

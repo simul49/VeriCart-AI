@@ -398,7 +398,7 @@ Executed after:
 | Frontend | Vue.js Development Server |
 | Backend | Spring Boot |
 | Database | MySQL 8.0 |
-| AI | DeepSeek / Qwen / Tencent Hunyuan Sandbox or Test APIs |
+| AI | DeepSeek / Kimi / Tencent Hunyuan Sandbox or Test APIs |
 | Containerization | Docker Compose |
 
 ---

@@ -11,4 +11,6 @@ public class Category {
     private Integer sortOrder;
     private Integer status;
     private LocalDateTime createdAt;
+    /** JSON array of offline/local image URLs, e.g. ["/images/sub-a.jpg","/images/sub-b.jpg"] */
+    private String images;
 }

@@ -232,7 +232,7 @@ Users report suspicious reviews.
 ---
 ## FR-038 Review Sentiment Analysis
 Model
-Qwen
+Kimi
 Output
 Positive
 Neutral
@@ -310,7 +310,7 @@ AI understands current product.
 ## FR-053 Multi-LLM Routing
 DeepSeek
 ↓
-Qwen
+Kimi
 ↓
 Tencent Hunyuan
 Automatically selected.

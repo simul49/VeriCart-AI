@@ -48,12 +48,12 @@ ai:
     api-key: ${DEEPSEEK_API_KEY:YOUR_DEEPSEEK_API_KEY}
     alt-api-key: ${DEEPSEEK_ALT_API_KEY:YOUR_DEEPSEEK_ALT_API_KEY}
     base-url: ${DEEPSEEK_BASE_URL:https://api.deepseek.com}
-    model: deepseek-chat
-  qwen:
-    api-key: ${QWEN_API_KEY:YOUR_QWEN_API_KEY}
-    base-url: https://dashscope.aliyuncs.com/compatible-mode/v1
-    model: qwen-plus
+    model: ${DEEPSEEK_MODEL:deepseek-chat}
+  kimi:
+    api-key: ${KIMI_API_KEY:YOUR_KIMI_API_KEY}
+    base-url: ${KIMI_BASE_URL:https://api.moonshot.cn/v1}
+    model: ${KIMI_MODEL:moonshot-v1-8k}
   hunyuan:
     api-key: ${HUNYUAN_API_KEY:YOUR_HUNYUAN_API_KEY}
-    base-url: https://api.hunyuan.cloud.tencent.com/v1
-    model: hunyuan-lite
+    base-url: ${HUNYUAN_BASE_URL:https://tokenhub.tencentmaas.com/v1}
+    model: ${HUNYUAN_MODEL:hy4-preview}

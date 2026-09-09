@@ -34,7 +34,7 @@
             <el-tag :type="statusTag(order.status)" size="small" effect="dark">
               {{ statusLabel(order.status) }}
             </el-tag>
-            <span style="font-size:20px;font-weight:800;color:var(--primary)">${{ order.totalAmount }}</span>
+            <span style="font-size:20px;font-weight:800;color:var(--primary)">¥{{ order.totalAmount }}</span>
           </div>
         </div>
 

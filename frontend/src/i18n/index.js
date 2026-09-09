@@ -14,8 +14,8 @@ function detectLocale() {
     const saved = localStorage.getItem(STORAGE_KEY)
     if (saved === 'en' || saved === 'zh') return saved
   } catch { /* localStorage unavailable (private mode) */ }
-  const nav = (navigator.language || 'en').toLowerCase()
-  return nav.startsWith('zh') ? 'zh' : 'en'
+  // Default to Chinese (VeriCart targets the Chinese marketplace)
+  return 'zh'
 }
 
 function applyHtmlLang(locale) {

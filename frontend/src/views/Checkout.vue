@@ -127,14 +127,14 @@
             <div class="summary-info">
               <div class="summary-name">{{ item.productName }}</div>
               <div class="summary-qty">{{ $t('common.quantity') }}: {{ item.quantity }}</div>
-              <div class="summary-amount">${{ (item.productPrice * item.quantity).toFixed(2) }}</div>
+              <div class="summary-amount">¥{{ (item.productPrice * item.quantity).toFixed(2) }}</div>
             </div>
           </div>
 
           <div class="summary-totals">
             <div class="summary-line">
               <span>{{ $t('cart.subtotal') }} ({{ selectedCount }})</span>
-              <span>${{ subtotal.toFixed(2) }}</span>
+              <span>¥{{ subtotal.toFixed(2) }}</span>
             </div>
             <div class="summary-line">
               <span>{{ $t('cart.shipping') }}</span>
@@ -142,7 +142,7 @@
             </div>
             <div class="summary-line summary-total">
               <span>{{ $t('common.total') }}</span>
-              <span class="summary-total-value">${{ subtotal.toFixed(2) }}</span>
+              <span class="summary-total-value">¥{{ subtotal.toFixed(2) }}</span>
             </div>
           </div>
 

@@ -31,7 +31,7 @@
             </div>
             <div class="col-price">
               <span class="m-label">{{ $t('cart.unitPrice') }}</span>
-              <span class="m-value">${{ item.productPrice }}</span>
+              <span class="m-value">¥{{ item.productPrice }}</span>
             </div>
             <div class="col-qty">
               <el-input-number
@@ -44,7 +44,7 @@
             </div>
             <div class="col-subtotal">
               <span class="m-label">{{ $t('cart.subtotal') }}</span>
-              <span class="m-value">${{ (item.productPrice * item.quantity).toFixed(2) }}</span>
+              <span class="m-value">¥{{ (item.productPrice * item.quantity).toFixed(2) }}</span>
             </div>
             <div class="col-action">
               <el-button
@@ -73,18 +73,18 @@
             </div>
             <div class="coupon-ok" v-if="couponDiscount > 0">
               <el-icon><CircleCheck /></el-icon>
-              {{ $t('cart.discountApplied') }} -${{ couponDiscount.toFixed(2) }}
+              {{ $t('cart.discountApplied') }} -¥{{ couponDiscount.toFixed(2) }}
             </div>
           </div>
 
           <div class="summary-lines">
             <div class="summary-line">
               <span>{{ $t('cart.subtotal') }} ({{ selectedCount }})</span>
-              <span>${{ subtotal.toFixed(2) }}</span>
+              <span>¥{{ subtotal.toFixed(2) }}</span>
             </div>
             <div class="summary-line" v-if="couponDiscount > 0">
               <span>{{ $t('cart.discount') }}</span>
-              <span class="summary-good">-${{ couponDiscount.toFixed(2) }}</span>
+              <span class="summary-good">-¥{{ couponDiscount.toFixed(2) }}</span>
             </div>
             <div class="summary-line">
               <span>{{ $t('cart.shipping') }}</span>
@@ -92,7 +92,7 @@
             </div>
             <div class="summary-line summary-total">
               <span>{{ $t('common.total') }}</span>
-              <span class="summary-total-value">${{ total.toFixed(2) }}</span>
+              <span class="summary-total-value">¥{{ total.toFixed(2) }}</span>
             </div>
           </div>
 

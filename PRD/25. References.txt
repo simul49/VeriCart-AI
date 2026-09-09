@@ -400,7 +400,7 @@ Review Analysis
 
 **[R-024]**
 
-Alibaba Qwen Documentation
+Alibaba Kimi Documentation
 
 Purpose
 
@@ -690,7 +690,7 @@ Technology Stack
 - MySQL
 - Docker
 - DeepSeek
-- Qwen
+- Kimi
 - Tencent Hunyuan
 
 ---

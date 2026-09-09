@@ -21,7 +21,7 @@
 
           <h4 class="compare-name">{{ p.name }}</h4>
 
-          <div class="compare-price">${{ p.price }}</div>
+          <div class="compare-price">¥{{ p.price }}</div>
 
           <div class="compare-metric">
             <span class="metric-label">Trust Score</span>
@@ -72,7 +72,7 @@
             <tbody>
               <tr>
                 <td>Price</td>
-                <td v-for="p in comparedProducts" :key="p.id">${{ p.price }}</td>
+                <td v-for="p in comparedProducts" :key="p.id">¥{{ p.price }}</td>
               </tr>
               <tr>
                 <td>Brand</td>

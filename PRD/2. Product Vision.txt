@@ -401,7 +401,7 @@ The project uses:
 - MySQL
 - Docker
 - DeepSeek
-- Qwen
+- Kimi
 - Tencent Hunyuan
 
 These technologies are achievable within one semester.

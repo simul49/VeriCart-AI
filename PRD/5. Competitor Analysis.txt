@@ -324,7 +324,7 @@ Recommendations include explanations rather than only predictions.
 Different AI models specialize in different tasks.
 
 - DeepSeek → Trust reasoning
-- Qwen → Recommendations
+- Kimi → Recommendations
 - Tencent Hunyuan → Multilingual understanding
 
 ---
@@ -392,7 +392,7 @@ This allows the platform to:
 
 The competitor analysis demonstrates that existing e-commerce platforms excel in logistics, payments, and product availability but provide limited support for intelligent trust evaluation.
 
-VeriCart AI differentiates itself through a Multi-LLM architecture that combines DeepSeek, Qwen, and Tencent Hunyuan to provide AI-generated Trust Scores, fake review detection, explainable recommendations, multilingual review analysis, and intelligent shopping assistance.
+VeriCart AI differentiates itself through a Multi-LLM architecture that combines DeepSeek, Kimi, and Tencent Hunyuan to provide AI-generated Trust Scores, fake review detection, explainable recommendations, multilingual review analysis, and intelligent shopping assistance.
 
 Rather than competing directly with established marketplaces on scale, VeriCart AI focuses on solving one of the most important unresolved challenges in digital commerce: **customer trust**.
 

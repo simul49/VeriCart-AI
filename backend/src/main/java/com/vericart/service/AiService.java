@@ -1,6 +1,7 @@
 package com.vericart.service;
 
 import com.vericart.ai.AiGateway;
+import com.vericart.ai.AiMockService;
 import com.vericart.dto.AiChatRequest;
 import com.vericart.dto.AiChatResponse;
 import com.vericart.entity.Product;
@@ -22,6 +23,7 @@ import java.util.*;
 public class AiService {
 
     private final AiGateway aiGateway;
+    private final AiMockService mockService; // conversational safety net when real LLM fails
     private final ReviewMapper reviewMapper;
     private final ProductMapper productMapper;
     private final ReviewService reviewService;
@@ -56,7 +58,7 @@ public class AiService {
             for (Review review : reviews) {
                 if (review.getSentiment() == null && review.getContent() != null && !review.getContent().isBlank()) {
                     try {
-                        // Sentiment via Qwen
+                        // Sentiment via Kimi
                         Map<String, Object> sentiment = aiGateway.analyzeSentiment(review.getContent());
                         String sent = sentiment.get("sentiment") != null ? sentiment.get("sentiment").toString() : null;
                         String emotion = sentiment.get("emotion") != null ? sentiment.get("emotion").toString() : null;
@@ -129,7 +131,9 @@ public class AiService {
     }
 
     /**
-     * AI Shopping Assistant chat (product-specific)
+     * AI Shopping Assistant chat (product-specific).
+     * If the live LLM call fails for any reason, falls back to a conversational reply
+     * so the assistant always answers the customer — never an empty/error response.
      */
     public AiChatResponse chat(Long userId, AiChatRequest request) {
         Product product = productMapper.findById(request.getProductId());
@@ -144,13 +148,24 @@ public class AiService {
                     return m;
                 }).toList();
 
-        return aiGateway.chat(request.getProductId(), product.getName(), request.getQuestion(), reviewData);
+        try {
+            return aiGateway.chat(request.getProductId(), product.getName(), request.getQuestion(), reviewData, request.getHistory());
+        } catch (Exception e) {
+            log.warn("[AI Chat] Live LLM failed, falling back to conversational reply: {}", e.getMessage());
+            String fallback = mockService.chat(product.getName(), request.getQuestion(), reviewData);
+            if (fallback == null || fallback.isBlank()) {
+                fallback = "I'm sorry, I'm having trouble answering right now. Please try again in a moment.";
+            }
+            return new AiChatResponse(fallback, "fallback", request.getProductId());
+        }
     }
 
     /**
-     * AI Shopping Assistant general chat (no product context)
+     * AI Shopping Assistant general chat (no product context).
+     * If the live LLM call fails, falls back to a conversational reply so the assistant
+     * always answers — even greetings like "hi" / "hello" get a real, varied response.
      */
-    public AiChatResponse generalChat(Long userId, String question) {
+    public AiChatResponse generalChat(Long userId, String question, List<Map<String, String>> history) {
         // Get all products with reviews for context
         List<Product> allProducts = productMapper.findAll(0, 20, null, null, null);
         List<Map<String, Object>> productContext = allProducts.stream()
@@ -164,7 +179,16 @@ public class AiService {
                     return m;
                 }).toList();
 
-        return aiGateway.generalChat(question, productContext);
+        try {
+            return aiGateway.generalChat(question, productContext, history);
+        } catch (Exception e) {
+            log.warn("[AI General Chat] Live LLM failed, falling back to conversational reply: {}", e.getMessage());
+            String fallback = mockService.generalChat(question, productContext);
+            if (fallback == null || fallback.isBlank()) {
+                fallback = "I'm sorry, I'm having trouble answering right now. Please try again in a moment.";
+            }
+            return new AiChatResponse(fallback, "fallback", null);
+        }
     }
 
     /**

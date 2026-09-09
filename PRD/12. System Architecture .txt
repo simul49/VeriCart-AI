@@ -60,13 +60,13 @@ Gateway["AI Gateway"]
 
 Gateway --> DeepSeek
 
-Gateway --> Qwen
+Gateway --> Kimi
 
 Gateway --> Hunyuan
 
 DeepSeek["DeepSeek API"]
 
-Qwen["Qwen API"]
+Kimi["Kimi API"]
 
 Hunyuan["Tencent Hunyuan API"]
 ```
@@ -318,7 +318,7 @@ AI["AI Gateway"]
 
 AI --> DeepSeek
 
-AI --> Qwen
+AI --> Kimi
 
 AI --> Hunyuan
 ```
@@ -349,7 +349,7 @@ Responsible for
 
 ---
 
-## Qwen
+## Kimi
 
 Responsible for
 
@@ -388,9 +388,9 @@ AI Gateway->>DeepSeek: Fake Review
 
 DeepSeek-->>Gateway: Result
 
-AI Gateway->>Qwen: Sentiment
+AI Gateway->>Kimi: Sentiment
 
-Qwen-->>Gateway: Result
+Kimi-->>Gateway: Result
 
 AI Gateway->>Hunyuan: Summary
 
@@ -508,7 +508,7 @@ AI Gateway
 
 DeepSeek
 
-Qwen
+Kimi
 
 Tencent Hunyuan
 ```
@@ -678,7 +678,7 @@ Docker
 
 DeepSeek
 
-Qwen
+Kimi
 
 Tencent Hunyuan
 ```
@@ -691,6 +691,6 @@ VeriCart AI adopts a modern layered software architecture that separates present
 
 The architecture enables secure, scalable, and maintainable software development while supporting future AI expansion.
 
-The introduction of a dedicated AI Gateway allows DeepSeek, Qwen, and Tencent Hunyuan to collaborate efficiently without tightly coupling AI services to business logic.
+The introduction of a dedicated AI Gateway allows DeepSeek, Kimi, and Tencent Hunyuan to collaborate efficiently without tightly coupling AI services to business logic.
 
 This architecture establishes the technical foundation for the remaining chapters, including Database Design, API Specification, AI Architecture, Deployment, and Software Testing.
