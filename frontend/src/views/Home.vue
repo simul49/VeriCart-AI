@@ -250,12 +250,31 @@
       <div class="all-products-grid">
         <div class="product-grid">
           <ProductCard
-            v-for="(p, i) in subProducts"
+            v-for="(p, i) in pagedSubProducts"
             :key="p.id || i"
             :product="p"
             :show-image="true"
             :clickable="true"
           />
+        </div>
+
+        <!-- All Products pager: 10 per page with Back / Next -->
+        <div v-if="totalAllPages > 1" class="all-pager">
+          <button
+            class="all-pg-btn"
+            :disabled="allPage <= 1"
+            @click="changeAllPage(allPage - 1)"
+          >
+            ← Back
+          </button>
+          <span class="all-pg-info">Page {{ allPage }} of {{ totalAllPages }}</span>
+          <button
+            class="all-pg-btn"
+            :disabled="allPage >= totalAllPages"
+            @click="changeAllPage(allPage + 1)"
+          >
+            Next →
+          </button>
         </div>
       </div>
 
@@ -329,6 +348,21 @@ const subProducts = computed(() => {
   }
   return out
 })
+
+/* ---------- All Products pagination (Home): 10 per page with Back / Next ---------- */
+const allPage = ref(1)
+const ALL_PAGE_SIZE = 10
+const totalAllPages = computed(() =>
+  Math.max(1, Math.ceil(subProducts.value.length / ALL_PAGE_SIZE))
+)
+const pagedSubProducts = computed(() => {
+  const start = (allPage.value - 1) * ALL_PAGE_SIZE
+  return subProducts.value.slice(start, start + ALL_PAGE_SIZE)
+})
+function changeAllPage(p) {
+  allPage.value = Math.min(Math.max(1, p), totalAllPages.value)
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
 
 /* ---------- Image-backed product pools (from subcategoryProducts.json) ---------- */
 // Only products that actually have a local picture are eligible for the promo grids.
@@ -977,6 +1011,39 @@ onUnmounted(() => clearInterval(countdownTimer))
   color: #fff;
   border-color: transparent;
   box-shadow: var(--shadow-brand);
+}
+/* Back / Next buttons + page counter inside the all-pager */
+.all-pager .all-pg-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 40px;
+  padding: 0 20px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--ink);
+  font-size: var(--font-sm);
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.all-pager .all-pg-btn:hover:not(:disabled) {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--primary-light);
+}
+.all-pager .all-pg-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.all-pager .all-pg-info {
+  font-size: var(--font-sm);
+  font-weight: 700;
+  color: var(--text-secondary);
+  min-width: 110px;
+  text-align: center;
 }
 
 /* ---------- All Products: product grid ---------- */
