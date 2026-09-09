@@ -82,13 +82,6 @@
       <p class="empty-text">Try broadening your search or using different keywords.</p>
     </section>
 
-    <!-- Empty: not searched yet -->
-    <section v-if="!hasSearched" class="empty-state">
-      <div class="empty-illustration"><el-icon><MagicStick /></el-icon></div>
-      <h3 class="empty-title">Describe what you're looking for</h3>
-      <p class="empty-text">Type a few words above and our AI will find the perfect match from the whole catalogue.</p>
-    </section>
-
     <!-- Trending fallback -->
     <section v-if="!hasSearched && trending.length" class="trending-section">
       <header class="result-head">
@@ -395,18 +388,6 @@ async function getRecommendations() {
   font-size: 40px;
   color: var(--primary, #FF5A1F);
   margin-bottom: 12px;
-}
-.empty-illustration {
-  width: 72px;
-  height: 72px;
-  margin: 0 auto 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-full);
-  background: var(--primary-light, #FFF3EC);
-  color: var(--primary, #FF5A1F);
-  font-size: 32px;
 }
 .empty-title {
   margin: 0 0 6px;
