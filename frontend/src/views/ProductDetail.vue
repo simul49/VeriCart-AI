@@ -1770,7 +1770,8 @@ function sentimentColor(s) {
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.18), 0 4px 14px rgba(0, 0, 0, 0.08);
   border: 1px solid var(--border-light, #E2E8F0);
   overflow: hidden;
-  animation: ask-ai-pop-in 0.22s ease both;
+  min-height: 420px;
+  background: #ffffff;
 }
 @media (max-width: 640px) {
   .ask-ai-popup {
@@ -1778,9 +1779,5 @@ function sentimentColor(s) {
     bottom: 80px;
     width: calc(100vw - 24px);
   }
-}
-@keyframes ask-ai-pop-in {
-  from { opacity: 0; transform: translateY(12px) scale(0.98); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 </style>
