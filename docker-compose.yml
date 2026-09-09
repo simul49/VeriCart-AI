@@ -32,9 +32,19 @@ services:
       DB_NAME: ${DB_NAME:-vericart}
       DB_USER: ${DB_USER:-root}
       DB_PASSWORD: ${DB_PASSWORD:-changeme}
+      # All three providers are served by Tencent Cloud TokenHub (international).
+      # A single TokenHub key works for kimi-k3, hy4-preview, deepseek-v4-pro-0813.
+      AI_MOCK_ENABLED: ${AI_MOCK_ENABLED:-false}
       DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-YOUR_DEEPSEEK_API_KEY}
       DEEPSEEK_ALT_API_KEY: ${DEEPSEEK_ALT_API_KEY:-YOUR_DEEPSEEK_ALT_API_KEY}
+      DEEPSEEK_BASE_URL: ${DEEPSEEK_BASE_URL:-https://tokenhub-intl.tencentcloudmaas.com}
+      DEEPSEEK_MODEL: ${DEEPSEEK_MODEL:-deepseek-v4-pro-0813}
+      KIMI_API_KEY: ${KIMI_API_KEY:-YOUR_KIMI_API_KEY}
+      KIMI_BASE_URL: ${KIMI_BASE_URL:-https://tokenhub-intl.tencentcloudmaas.com/v1}
+      KIMI_MODEL: ${KIMI_MODEL:-kimi-k3}
       HUNYUAN_API_KEY: ${HUNYUAN_API_KEY:-YOUR_HUNYUAN_API_KEY}
+      HUNYUAN_BASE_URL: ${HUNYUAN_BASE_URL:-https://tokenhub-intl.tencentcloudmaas.com/v1}
+      HUNYUAN_MODEL: ${HUNYUAN_MODEL:-hy4-preview}
     ports:
       - "8080:8080"
 
