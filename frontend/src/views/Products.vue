@@ -79,15 +79,36 @@
         </div>
       </div>
 
-      <div v-else-if="filteredGroupedProducts.length" class="product-grid">
-        <ProductCard
-          v-for="p in filteredGroupedProducts"
-          :key="p.id"
-          :product="p"
-          :show-image="true"
-          :clickable="true"
-        />
-      </div>
+      <template v-else-if="filteredGroupedProducts.length">
+        <div class="product-grid">
+          <ProductCard
+            v-for="p in pagedGroupedProducts"
+            :key="p.id"
+            :product="p"
+            :show-image="true"
+            :clickable="true"
+          />
+        </div>
+
+        <!-- Pagination for the All Products overview (10 products per page) -->
+        <div v-if="totalGroupedPages > 1" class="grouped-pagination">
+          <button
+            class="pg-btn"
+            :disabled="groupedPage <= 1"
+            @click="changeGroupedPage(groupedPage - 1)"
+          >
+            ← Back
+          </button>
+          <span class="pg-info">Page {{ groupedPage }} of {{ totalGroupedPages }}</span>
+          <button
+            class="pg-btn"
+            :disabled="groupedPage >= totalGroupedPages"
+            @click="changeGroupedPage(groupedPage + 1)"
+          >
+            Next →
+          </button>
+        </div>
+      </template>
 
       <div v-else class="empty-state">
         <div class="empty-icon"><el-icon><Search /></el-icon></div>
@@ -165,6 +186,21 @@ const loading = ref(false)
 // Grouped-by-sub-category state (All Products overview)
 const groupedData = ref([])
 const groupedLoading = ref(false)
+
+// Client-side pagination for the All Products overview: 10 products per page.
+const groupedPage = ref(1)
+const GROUPED_PAGE_SIZE = 10
+const totalGroupedPages = computed(() =>
+  Math.max(1, Math.ceil(filteredGroupedProducts.value.length / GROUPED_PAGE_SIZE))
+)
+const pagedGroupedProducts = computed(() => {
+  const start = (groupedPage.value - 1) * GROUPED_PAGE_SIZE
+  return filteredGroupedProducts.value.slice(start, start + GROUPED_PAGE_SIZE)
+})
+function changeGroupedPage(p) {
+  groupedPage.value = Math.min(Math.max(1, p), totalGroupedPages.value)
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
 
 // Server-paginated products for the flat view (used by the grid).
 const displayProducts = computed(() => products.value)
@@ -260,6 +296,7 @@ async function fetchAll() {
 }
 
 async function fetchGrouped() {
+  groupedPage.value = 1
   groupedLoading.value = true
   try {
     const res = await productApi.grouped()
@@ -401,6 +438,49 @@ async function fetchProducts() {
   margin-top: 32px;
   padding-top: 24px;
   border-top: 1px solid var(--border-light);
+}
+
+/* All Products overview pagination (10 per page, Back / Next) */
+.grouped-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-light);
+}
+.pg-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 42px;
+  padding: 0 22px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--ink);
+  font-size: var(--font-sm);
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.pg-btn:hover:not(:disabled) {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--primary-light);
+}
+.pg-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.pg-info {
+  font-size: var(--font-sm);
+  font-weight: 700;
+  color: var(--text-secondary);
+  min-width: 120px;
+  text-align: center;
 }
 
 @media (max-width: 768px) {
