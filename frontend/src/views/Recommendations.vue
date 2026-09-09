@@ -32,7 +32,6 @@
           Get Recommendations
         </el-button>
       </div>
-      <p class="pref-hint">Describe it naturally &mdash; price, category, features, or who it's for.</p>
     </section>
 
     <!-- Results -->
@@ -238,11 +237,6 @@ async function getRecommendations() {
 }
 .pref-input { flex: 1 1 300px; }
 .pref-btn { flex-shrink: 0; }
-.pref-hint {
-  margin: 12px 0 0;
-  font-size: var(--font-xs);
-  color: var(--text-muted, #94A3B8);
-}
 
 /* ============ Result header ============ */
 .result-head {
