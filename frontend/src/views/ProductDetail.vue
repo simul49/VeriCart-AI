@@ -160,18 +160,9 @@
               <div class="ask-ai-sub">Get instant answers, powered by AI</div>
             </div>
           </div>
-          <button class="buy-now-btn ask-ai-sidebar-btn" @click="showProductChat = !showProductChat">
-            {{ showProductChat ? 'Hide Chat' : 'Ask Question' }}
+          <button class="buy-now-btn ask-ai-sidebar-btn" @click="openAskAI">
+            Ask Question
           </button>
-        </div>
-
-        <!-- Compact floating AI chat popup (rendered in-place with position:fixed; Teleport was unreliable across builds) -->
-        <div v-if="showProductChat" class="ask-ai-popup" role="dialog" aria-label="Ask AI about this product">
-          <ChatPanel
-            :productId="product?.id"
-            :productName="product?.name"
-            @close="showProductChat = false"
-          />
         </div>
 
         </div>
@@ -506,7 +497,6 @@ import { useCartStore } from '@/stores/cart'
 import { parseVariants, selectionSummary } from '@/utils/variants'
 import { marked } from 'marked'
 import StarRating from '@/components/StarRating.vue'
-import ChatPanel from '@/components/ChatPanel.vue'
 import ReviewForm from '@/components/ReviewForm.vue'
 import TrustScoreExplainer from '@/components/TrustScoreExplainer.vue'
 import TopicSentimentChart from '@/components/TopicSentimentChart.vue'
@@ -539,8 +529,19 @@ const contentTab = ref('reviews')
 const selectedImage = ref(0)
 const quantity = ref(1)
 const analyzing = ref(false)
-const showProductChat = ref(false)
 const isWishlisted = ref(false)
+
+// Open the global AI chat widget (the floating one from App.vue, which is guaranteed
+// to render reliably) and pass this product's context via a window CustomEvent so
+// the global ChatPanel can address the product by name in its greeting.
+function openAskAI() {
+  window.dispatchEvent(new CustomEvent('vericart:open-chat', {
+    detail: {
+      productId: product.value?.id ?? null,
+      productName: product.value?.name ?? ''
+    }
+  }))
+}
 
 // Message Seller state
 const msgDialogVisible = ref(false)
@@ -1756,32 +1757,4 @@ function sentimentColor(s) {
 }
 </style>
 
-<!-- Unscoped styles for the floating Ask AI chat popup.
-     Kept global so they apply reliably regardless of <style scoped> data-v attribute behaviour
-     (Teleport + scoped CSS was the root cause of the popup being invisible across 3 commits). -->
-<style>
-.ask-ai-popup {
-  position: fixed;
-  right: 24px;
-  bottom: 96px; /* sits above the global chat bubble (~64-72px) */
-  width: 360px;
-  max-width: calc(100vw - 32px);
-  z-index: 1000;
-  background: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.18), 0 4px 14px rgba(0, 0, 0, 0.08);
-  border: 1px solid #E2E8F0;
-  overflow: hidden;
-  max-height: calc(100vh - 40px);
-  display: flex;
-  flex-direction: column;
-}
-@media (max-width: 640px) {
-  .ask-ai-popup {
-    right: 12px;
-    bottom: 20px;
-    width: calc(100vw - 24px);
-    max-height: calc(100vh - 40px);
-  }
-}
-</style>
+

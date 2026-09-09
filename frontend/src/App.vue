@@ -299,7 +299,7 @@
         <el-icon v-if="!showChat"><ChatDotRound /></el-icon>
         <el-icon v-else><Close /></el-icon>
       </button>
-      <ChatPanel v-if="showChat" @close="showChat = false" />
+      <ChatPanel v-if="showChat" :productId="chatContext.productId" :productName="chatContext.productName" @close="showChat = false" />
     </div>
   </div>
 </template>
@@ -323,6 +323,17 @@ const cart = useCartStore()
 const compare = useCompareStore()
 
 const showChat = ref(false)
+// Product context for the AI chat — set when a product page dispatches
+// the `vericart:open-chat` window event so the global ChatPanel can address
+// the product by name in its greeting.
+const chatContext = ref({ productId: null, productName: '' })
+function onOpenChat(e) {
+  chatContext.value = {
+    productId: e.detail?.productId ?? null,
+    productName: e.detail?.productName ?? ''
+  }
+  showChat.value = true
+}
 const searchQuery = ref('')
 const unreadCount = ref(0)
 const mobileOpen = ref(false)
@@ -439,6 +450,7 @@ onMounted(async () => {
     if (res.data?.length) quickCategories.value = res.data
   } catch { /* keep defaults */ }
   window.addEventListener('resize', updateBarArrows)
+  window.addEventListener('vericart:open-chat', onOpenChat)
   await nextTick()
   updateBarArrows()
 })
@@ -451,6 +463,7 @@ watch(categoryTree, async () => {
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', updateBarArrows)
+  window.removeEventListener('vericart:open-chat', onOpenChat)
 })
 
 watch(() => auth.isLoggedIn, (val) => {
