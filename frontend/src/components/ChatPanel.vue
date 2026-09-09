@@ -138,6 +138,22 @@ async function send() {
 </script>
 
 <style scoped>
+.chat-panel {
+  display: flex;
+  flex-direction: column;
+}
+.chat-header {
+  flex-shrink: 0;
+}
+.chat-messages {
+  max-height: 380px;
+  min-height: 140px;
+  overflow-y: auto;
+  padding: 14px;
+}
+.chat-input {
+  flex-shrink: 0;
+}
 .chat-welcome {
   color: #4B5563;
   font-size: 13px;
