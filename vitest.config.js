@@ -6,6 +6,7 @@ import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 import path from 'path'
 
 export default defineConfig({
+  base: '/', // Add this line here for your custom domain root
   plugins: [
     vue(),
     AutoImport({ resolvers: [ElementPlusResolver()] }),
