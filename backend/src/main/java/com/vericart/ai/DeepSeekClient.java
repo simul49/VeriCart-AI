@@ -120,6 +120,8 @@ public class DeepSeekClient {
             • Keep replies concise and natural (1 sentence for a simple greeting; 2–5 sentences
               for normal Q&A; a short list only when truly helpful).
             • Never invent specs, prices, or claims not supported by the data. If unsure, say so.
+            • Currency: All prices on VeriCart are in Chinese Yuan (RMB). Always show prices with
+              the ¥ symbol (e.g. ¥299). Never use $, USD, or any other currency.
             • Do NOT start every reply with the same opening line. Vary phrasing.
             """;
 
@@ -159,13 +161,16 @@ public class DeepSeekClient {
               offer to relate it back to shopping if useful.
             • Keep replies concise (2–5 sentences). Warm, natural tone. No robotic templates.
             • Never invent product details not in the catalog. If you don't know, say so.
+            • Currency: All prices on VeriCart are in Chinese Yuan (RMB). Always show prices with
+              the ¥ symbol (e.g. ¥299) using the EXACT numeric price from the catalog context.
+              Never invent prices and never use $, USD, or any other currency.
             """;
 
         StringBuilder sb = new StringBuilder("Customer Question: ").append(question).append("\n\n");
         sb.append("Available Products in Store:\n");
         for (Map<String, Object> p : productContext) {
             sb.append("- ").append(p.get("name"))
-              .append(" | $").append(p.get("price"))
+              .append(" | ¥").append(p.get("price"))
               .append(" | Rating: ").append(p.get("rating"))
               .append("/5 | Trust: ").append(p.get("trustScore") != null ? p.get("trustScore") : "N/A")
               .append(" | Brand: ").append(p.get("brand") != null ? p.get("brand") : "—")

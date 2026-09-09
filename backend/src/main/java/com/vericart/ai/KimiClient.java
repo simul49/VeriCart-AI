@@ -67,6 +67,8 @@ public class KimiClient {
             Be honest, transparent, and base your answers on the actual review data provided.
             If reviews indicate problems, mention them. If the product seems trustworthy, say so.
             Keep answers concise (2-4 sentences).
+            Currency: All prices on VeriCart are in Chinese Yuan (RMB). Always show prices with the ¥
+            symbol (e.g. ¥299). Never use $, USD, or any other currency.
             """;
 
         StringBuilder sb = new StringBuilder();
@@ -98,13 +100,16 @@ public class KimiClient {
             store's product catalog for context. Be helpful, honest, and transparent. If you recommend a
             product, explain why. Answer ANY question the customer asks — not just shopping ones — in a
             friendly tone. Keep answers concise (3-5 sentences).
+            Currency: All prices on VeriCart are in Chinese Yuan (RMB). Always show prices with the ¥
+            symbol (e.g. ¥299) using the EXACT numeric price from the catalog context. Never invent
+            prices and never use $, USD, or any other currency.
             """;
 
         StringBuilder sb = new StringBuilder("Customer Question: ").append(question).append("\n\n");
         sb.append("Available Products in Store:\n");
         for (Map<String, Object> p : productContext) {
             sb.append("- ").append(p.get("name"))
-              .append(" | $").append(p.get("price"))
+              .append(" | ¥").append(p.get("price"))
               .append(" | Rating: ").append(p.get("rating"))
               .append("/5 | Trust: ").append(p.get("trustScore") != null ? p.get("trustScore") : "N/A")
               .append(" | Brand: ").append(p.get("brand") != null ? p.get("brand") : "—")
@@ -177,7 +182,7 @@ public class KimiClient {
             ctx.append("### Product Card\n");
             ctx.append("Name: ").append(productInfo.getOrDefault("name", "?")).append("\n");
             ctx.append("Brand: ").append(productInfo.getOrDefault("brand", "N/A")).append("\n");
-            ctx.append("Price: $").append(productInfo.getOrDefault("price", "N/A")).append("\n");
+            ctx.append("Price: ¥").append(productInfo.getOrDefault("price", "N/A")).append("\n");
             ctx.append("Stock: ").append(productInfo.getOrDefault("stock", "N/A")).append("\n");
             ctx.append("Rating: ").append(productInfo.getOrDefault("rating", "N/A")).append("/5\n");
             ctx.append("Trust score: ").append(productInfo.getOrDefault("trustScore", "N/A")).append("/100\n");

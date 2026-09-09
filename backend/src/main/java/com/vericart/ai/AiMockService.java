@@ -356,7 +356,7 @@ public class AiMockService {
                 .orElse(productContext.get(0));
 
         // Budget filter
-        java.util.regex.Matcher m = java.util.regex.Pattern.compile("\\$?(\\d{2,4})").matcher(question);
+        java.util.regex.Matcher m = java.util.regex.Pattern.compile("[$¥]?(\\d{2,4})").matcher(question);
         int budget = -1;
         if (m.find()) {
             try { budget = Integer.parseInt(m.group(1)); } catch (Exception ignored) {}
@@ -370,20 +370,20 @@ public class AiMockService {
                     .limit(3)
                     .toList();
             if (!under.isEmpty()) {
-                StringBuilder sb = new StringBuilder(String.format("Here are the best-rated products under **$%d**:\n\n", maxPrice));
+                StringBuilder sb = new StringBuilder(String.format("Here are the best-rated products under **¥%d**:\n\n", maxPrice));
                 for (int i = 0; i < under.size(); i++) {
                     Map<String, Object> p = under.get(i);
-                    sb.append(String.format("%d. **%s** - $%.2f, %.1f/5 stars, trust %s/100\n",
+                    sb.append(String.format("%d. **%s** - ¥%.2f, %.1f/5 stars, trust %s/100\n",
                             i + 1, p.get("name"), ((Number) p.get("price")).doubleValue(),
                             ((Number) p.get("rating")).doubleValue(), p.get("trustScore")));
                 }
                 return sb.toString();
             }
-            return String.format("I couldn't find any products under **$%d** right now. Try a higher budget or ask for the cheapest option.", budget);
+            return String.format("I couldn't find any products under **¥%d** right now. Try a higher budget or ask for the cheapest option.", budget);
         }
 
         if (q.contains("cheapest") || q.contains("lowest price") || q.contains("affordable") || q.contains("budget")) {
-            return String.format("The most affordable option is **%s** at **$%.2f** (%.1f/5 stars). Let me know if you want a value comparison.",
+            return String.format("The most affordable option is **%s** at **¥%.2f** (%.1f/5 stars). Let me know if you want a value comparison.",
                     cheapest.get("name"), ((Number) cheapest.get("price")).doubleValue(), ((Number) cheapest.get("rating")).doubleValue());
         }
 
@@ -393,7 +393,7 @@ public class AiMockService {
         }
 
         if (q.contains("compare") || q.contains("versus") || q.contains(" vs ")) {
-            return String.format("I can compare! Our top-rated product is **%s** (%.1f/5) and the most affordable is **%s** ($%.2f). Tell me two product names and I'll compare them directly.",
+            return String.format("I can compare! Our top-rated product is **%s** (%.1f/5) and the most affordable is **%s** (¥%.2f). Tell me two product names and I'll compare them directly.",
                     best.get("name"), ((Number) best.get("rating")).doubleValue(),
                     cheapest.get("name"), ((Number) cheapest.get("price")).doubleValue());
         }
@@ -475,7 +475,7 @@ public class AiMockService {
             }
             for (int i = 0; i < n; i++) {
                 Map<String, Object> p = matched.get(i);
-                sb.append(String.format("%d. **%s** — $%.2f, %.1f/5 stars, trust %s/100\n",
+                sb.append(String.format("%d. **%s** — ¥%.2f, %.1f/5 stars, trust %s/100\n",
                         i + 1, p.get("name"),
                         ((Number) p.getOrDefault("price", 0)).doubleValue(),
                         ((Number) p.getOrDefault("rating", 0)).doubleValue(),
@@ -620,7 +620,7 @@ public class AiMockService {
         sb.append("### Top picks\n\n");
         for (int i = 0; i < picks.size(); i++) {
             ScoredProduct sp = picks.get(i);
-            sb.append(String.format("%d. **%s** - $%.2f | %.1f/5 stars | Trust %d/100\n",
+            sb.append(String.format("%d. **%s** - ¥%.2f | %.1f/5 stars | Trust %d/100\n",
                     i + 1, sp.name, sp.price, sp.rating, sp.trustScore));
             sb.append("   - ").append(buildReason(sp, prefs, i + 1)).append("\n");
         }
@@ -855,8 +855,8 @@ public class AiMockService {
         // --- Price / negotiation / discount ---
         if (containsAny(q, "price", "cost", "cheap", "discount", "negotiat", "bargain", "deal", "优惠", "价格", "便宜", "降价", "折扣", "砍价", "能不能便宜")) {
             return chinese
-                    ? head + "，「" + name + "」目前售价 **$" + formatPrice(price) + "**，这是 AI 校验过的市场合理价位。店铺不定期有满减活动，加入购物车或关注店铺可以第一时间看到优惠。"
-                    : head + ", **" + name + "** is currently priced at **$" + formatPrice(price) + "** — an AI-verified fair market price. The store runs occasional promotions, so adding it to your cart or following the store helps you catch discounts.";
+                    ? head + "，「" + name + "」目前售价 **¥" + formatPrice(price) + "**，这是 AI 校验过的市场合理价位。店铺不定期有满减活动，加入购物车或关注店铺可以第一时间看到优惠。"
+                    : head + ", **" + name + "** is currently priced at **¥" + formatPrice(price) + "** — an AI-verified fair market price. The store runs occasional promotions, so adding it to your cart or following the store helps you catch discounts.";
         }
 
         // --- Authenticity / trust ---
