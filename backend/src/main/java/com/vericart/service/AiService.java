@@ -179,18 +179,9 @@ public class AiService {
      * always answers — even greetings like "hi" / "hello" get a real, varied response.
      */
     public AiChatResponse generalChat(Long userId, String question, List<Map<String, String>> history) {
-        // Get all products with reviews for context
-        List<Product> allProducts = productMapper.findAll(0, 20, null, null, null);
-        List<Map<String, Object>> productContext = allProducts.stream()
-                .map(p -> {
-                    Map<String, Object> m = new HashMap<>();
-                    m.put("id", p.getId());
-                    m.put("name", p.getName());
-                    m.put("price", p.getPrice());
-                    m.put("rating", p.getRating());
-                    m.put("trustScore", p.getTrustScore());
-                    return m;
-                }).toList();
+        // Feed the assistant the FULL picture-backed catalogue (56 products across
+        // the 11 categories) with full details, so it can answer about any product.
+        List<Map<String, Object>> productContext = loadCatalogContext();
 
         try {
             return aiGateway.generalChat(question, productContext, history);
@@ -208,21 +199,8 @@ public class AiService {
      * AI Product Recommendations
      */
     public Map<String, Object> recommend(Long userId, String preferences) {
-        List<Product> allProducts = productMapper.findAll(0, 50, null, null, null);
-
-        List<Map<String, Object>> productData = allProducts.stream()
-                .map(p -> {
-                    Map<String, Object> m = new HashMap<>();
-                    m.put("id", p.getId());
-                    m.put("name", p.getName());
-                    m.put("price", p.getPrice());
-                    m.put("description", p.getDescription() != null ? p.getDescription() : "");
-                    m.put("rating", p.getRating());
-                    m.put("trustScore", p.getTrustScore());
-                    m.put("category", p.getCategoryId());
-                    m.put("reviewCount", p.getReviewCount());
-                    return m;
-                }).toList();
+        // Consider the full picture-backed catalogue (56 products) for recommendations.
+        List<Map<String, Object>> productData = loadCatalogContext();
 
         Map<String, Object> recResult = aiGateway.getRecommendations(preferences, productData);
 
@@ -245,6 +223,38 @@ public class AiService {
         result.put("recommendations", recommendations);
         result.put("explanation", recResult != null ? recResult.get("explanation") : "");
         return result;
+    }
+
+    /**
+     * Build the product catalogue context fed to the AI Shopping Assistant.
+     * Includes every active product that has at least one image — the 56 products
+     * across the 11 storefront categories — with full details so the assistant can
+     * answer questions about any of them (not just the first 20/50 by DB order).
+     */
+    private List<Map<String, Object>> loadCatalogContext() {
+        List<Product> products = productMapper.findAllSimple();
+        List<Map<String, Object>> context = new ArrayList<>();
+        for (Product p : products) {
+            if (!hasPicture(p)) continue;
+            Map<String, Object> m = new HashMap<>();
+            m.put("id", p.getId());
+            m.put("name", p.getName());
+            m.put("description", p.getDescription() != null ? p.getDescription() : "");
+            m.put("price", p.getPrice());
+            m.put("brand", p.getBrand() != null ? p.getBrand() : "");
+            m.put("categoryId", p.getCategoryId());
+            m.put("rating", p.getRating());
+            m.put("trustScore", p.getTrustScore());
+            m.put("trustLevel", p.getTrustLevel());
+            m.put("reviewCount", p.getReviewCount());
+            context.add(m);
+        }
+        return context;
+    }
+
+    private boolean hasPicture(Product p) {
+        String imgs = p.getImages();
+        return imgs != null && !imgs.isBlank() && !"[]".equals(imgs.trim());
     }
 
     @Async

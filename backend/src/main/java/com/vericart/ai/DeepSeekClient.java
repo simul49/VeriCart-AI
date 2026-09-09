@@ -167,7 +167,10 @@ public class DeepSeekClient {
             sb.append("- ").append(p.get("name"))
               .append(" | $").append(p.get("price"))
               .append(" | Rating: ").append(p.get("rating"))
-              .append("/5 | Trust Score: ").append(p.get("trustScore") != null ? p.get("trustScore") : "N/A")
+              .append("/5 | Trust: ").append(p.get("trustScore") != null ? p.get("trustScore") : "N/A")
+              .append(" | Brand: ").append(p.get("brand") != null ? p.get("brand") : "—")
+              .append(" | Category: ").append(p.get("categoryId") != null ? p.get("categoryId") : "—")
+              .append(" | ").append(p.get("description") != null ? p.get("description") : "")
               .append("\n");
         }
 
