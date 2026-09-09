@@ -141,13 +141,16 @@ async function send() {
 .chat-panel {
   display: flex;
   flex-direction: column;
+  flex: 1;
+  min-height: 0;
 }
 .chat-header {
   flex-shrink: 0;
 }
 .chat-messages {
+  flex: 1;
+  min-height: 0;
   max-height: 380px;
-  min-height: 140px;
   overflow-y: auto;
   padding: 14px;
 }

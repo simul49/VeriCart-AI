@@ -1770,14 +1770,17 @@ function sentimentColor(s) {
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.18), 0 4px 14px rgba(0, 0, 0, 0.08);
   border: 1px solid var(--border-light, #E2E8F0);
   overflow: hidden;
-  min-height: 420px;
   background: #ffffff;
+  max-height: calc(100vh - 40px);
+  display: flex;
+  flex-direction: column;
 }
 @media (max-width: 640px) {
   .ask-ai-popup {
     right: 12px;
-    bottom: 80px;
+    bottom: 20px;
     width: calc(100vw - 24px);
+    max-height: calc(100vh - 40px);
   }
 }
 </style>
