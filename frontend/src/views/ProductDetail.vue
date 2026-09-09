@@ -167,15 +167,13 @@
 
         <!-- Compact floating AI chat popup (teleported to body so it doesn't push page layout) -->
         <Teleport to="body">
-          <Transition name="ask-ai-pop">
-            <div v-if="showProductChat" class="ask-ai-popup" role="dialog" aria-label="Ask AI about this product">
-              <ChatPanel
-                :productId="product?.id"
-                :productName="product?.name"
-                @close="showProductChat = false"
-              />
-            </div>
-          </Transition>
+          <div v-if="showProductChat" class="ask-ai-popup" role="dialog" aria-label="Ask AI about this product">
+            <ChatPanel
+              :productId="product?.id"
+              :productName="product?.name"
+              @close="showProductChat = false"
+            />
+          </div>
         </Teleport>
 
         </div>
@@ -1772,6 +1770,7 @@ function sentimentColor(s) {
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.18), 0 4px 14px rgba(0, 0, 0, 0.08);
   border: 1px solid var(--border-light, #E2E8F0);
   overflow: hidden;
+  animation: ask-ai-pop-in 0.22s ease both;
 }
 @media (max-width: 640px) {
   .ask-ai-popup {
@@ -1780,11 +1779,8 @@ function sentimentColor(s) {
     width: calc(100vw - 24px);
   }
 }
-.ask-ai-pop-enter-active, .ask-ai-pop-leave-active {
-  transition: transform 0.22s ease, opacity 0.22s ease;
-}
-.ask-ai-pop-enter-from, .ask-ai-pop-leave-to {
-  opacity: 0;
-  transform: translateY(12px) scale(0.98);
+@keyframes ask-ai-pop-in {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 </style>
