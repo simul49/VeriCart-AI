@@ -165,16 +165,14 @@
           </button>
         </div>
 
-        <!-- Compact floating AI chat popup (teleported to body so it doesn't push page layout) -->
-        <Teleport to="body">
-          <div v-if="showProductChat" class="ask-ai-popup" role="dialog" aria-label="Ask AI about this product">
-            <ChatPanel
-              :productId="product?.id"
-              :productName="product?.name"
-              @close="showProductChat = false"
-            />
-          </div>
-        </Teleport>
+        <!-- Compact floating AI chat popup (rendered in-place with position:fixed; Teleport was unreliable across builds) -->
+        <div v-if="showProductChat" class="ask-ai-popup" role="dialog" aria-label="Ask AI about this product">
+          <ChatPanel
+            :productId="product?.id"
+            :productName="product?.name"
+            @close="showProductChat = false"
+          />
+        </div>
 
         </div>
     </div>
@@ -1756,8 +1754,12 @@ function sentimentColor(s) {
   font-size: var(--font-xs);
   color: var(--text-muted, #94A3B8);
 }
+</style>
 
-/* ============ Floating compact Ask AI chat popup ============ */
+<!-- Unscoped styles for the floating Ask AI chat popup.
+     Kept global so they apply reliably regardless of <style scoped> data-v attribute behaviour
+     (Teleport + scoped CSS was the root cause of the popup being invisible across 3 commits). -->
+<style>
 .ask-ai-popup {
   position: fixed;
   right: 24px;
@@ -1765,12 +1767,11 @@ function sentimentColor(s) {
   width: 360px;
   max-width: calc(100vw - 32px);
   z-index: 1000;
-  background: #fff;
+  background: #ffffff;
   border-radius: 16px;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.18), 0 4px 14px rgba(0, 0, 0, 0.08);
-  border: 1px solid var(--border-light, #E2E8F0);
+  border: 1px solid #E2E8F0;
   overflow: hidden;
-  background: #ffffff;
   max-height: calc(100vh - 40px);
   display: flex;
   flex-direction: column;
