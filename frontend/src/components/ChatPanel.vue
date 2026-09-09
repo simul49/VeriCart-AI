@@ -5,7 +5,7 @@
         <span>🤖</span>
         <div>
           <div style="font-weight:600">AI Shopping Assistant</div>
-          <div style="font-size:11px;opacity:0.85">Ask me anything about products</div>
+          <div style="font-size:11px;opacity:0.85">{{ productId ? 'Ask me about this product' : 'Ask me anything about products' }}</div>
         </div>
       </div>
       <el-button text style="color:white" @click="$emit('close')">✕</el-button>
@@ -13,10 +13,16 @@
 
     <div class="chat-messages" ref="msgContainer">
       <div v-if="messages.length === 0" class="chat-welcome">
-        <div style="font-weight:600;margin-bottom:8px">Hi, I'm your AI shopping assistant!</div>
+        <div v-if="productId" style="font-weight:600;margin-bottom:8px">
+          Hi! Ask me anything about <span style="color:var(--primary)">{{ productName || 'this product' }}</span>.
+        </div>
+        <div v-else style="font-weight:600;margin-bottom:8px">
+          Hi, I'm your AI shopping assistant!
+        </div>
         <div style="margin-bottom:12px">
-          I can compare products, check trust scores, summarize reviews, or help you find the best deal.
-          Feel free to ask anything — long or short.
+          {{ productId
+            ? 'I can answer questions about specs, reviews, value, and how it compares to similar products.'
+            : 'I can compare products, check trust scores, summarize reviews, or help you find the best deal. Feel free to ask anything — long or short.' }}
         </div>
         <div class="chat-suggestions">
           <button v-for="s in suggestions" :key="s" @click="sendSuggestion(s)">{{ s }}</button>
@@ -55,26 +61,38 @@
 </template>
 
 <script setup>
-import { ref, nextTick, watch } from 'vue'
+import { ref, nextTick, watch, computed } from 'vue'
 import { aiApi } from '@/api'
 import { ElMessage, ElInput } from 'element-plus'
 import { marked } from 'marked'
 
 defineEmits(['close'])
 
-const props = defineProps({ productId: { type: Number, default: null } })
+const props = defineProps({
+  productId: { type: Number, default: null },
+  productName: { type: String, default: '' }
+})
 
 const input = ref('')
 const messages = ref([])
 const loading = ref(false)
 const msgContainer = ref(null)
 
-const suggestions = [
+const genericSuggestions = [
   'Which product has the best trust score?',
   'Compare the top-rated headphones',
   'What are common complaints?',
   'Find me a laptop under $1000'
 ]
+
+const productSuggestions = [
+  'Is this product worth the price?',
+  'What do reviews say about quality?',
+  'What are common complaints about it?',
+  'How does this compare to similar products?'
+]
+
+const suggestions = computed(() => props.productId ? productSuggestions : genericSuggestions)
 
 function renderMarkdown(text) {
   try {

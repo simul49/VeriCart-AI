@@ -166,6 +166,7 @@
           <ChatPanel
             v-if="showProductChat"
             :productId="product?.id"
+            :productName="product?.name"
             style="margin-top:14px;border:1px solid var(--border-light);border-radius:12px;overflow:hidden"
           />
         </div>
