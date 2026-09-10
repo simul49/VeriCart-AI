@@ -253,6 +253,16 @@ Demo data includes seeded reviews (some deliberately fake) across several produc
 
 ---
 
+## Documentation
+
+| Document | Contents |
+| --- | --- |
+| [`docs/trustscore.md`](docs/trustscore.md) | How the AI Trust Score is calculated — the 5 weighted factors, the multi-model scoring, Trusted vs Raw Rating, a worked example. |
+| [`docs/work.md`](docs/work.md) | How the system works end to end — DeepSeek / Kimi / Hunyuan, the Docker stack, and the MySQL database. |
+| [`VeriCart-AI-Overview.pptx`](VeriCart-AI-Overview.pptx) | 14-slide professional project overview deck. |
+
+---
+
 ## Running Tests
 
 **Backend** — JUnit 5 + H2 in-memory:
