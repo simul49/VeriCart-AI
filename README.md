@@ -67,31 +67,51 @@ Flagged reviews are **removed** before the visible **Trusted Rating** is average
 
 ```
 VeriCart AI/
-├── backend/                  # Spring Boot backend
-│   ├── src/main/java/com/vericart/
-│   │   ├── config/           # Security, AI, CORS configuration
-│   │   ├── controller/       # REST API controllers
-│   │   ├── dto/              # Data transfer objects
-│   │   ├── entity/           # MyBatis entity classes
-│   │   ├── mapper/           # MyBatis mapper interfaces
-│   │   ├── service/          # Business logic & AI gateway
-│   │   └── util/             # Utility classes
+├── backend/                              # Spring Boot backend (Java 17)
+│   └── src/main/java/com/vericart/
+│       ├── ai/                           # AI clients (DeepSeek, Kimi, Hunyuan) + AiGateway
+│       ├── common/                       # Shared types & constants
+│       ├── config/                       # Security, AI, CORS, JPA configuration
+│       ├── controller/                   # REST API controllers (auth, products, ai, reviews…)
+│       ├── dto/                          # Request / response data transfer objects
+│       ├── entity/                       # MyBatis entity classes
+│       ├── exception/                    # Global exception handling
+│       ├── mapper/                       # MyBatis mapper interfaces
+│       ├── scheduler/                    # Scheduled tasks
+│       ├── security/                     # JWT auth & role-based access
+│       ├── service/                      # Business logic & AI orchestration
+│       ├── util/  utils/                 # Utility classes
+│       └── VeriCartApplication.java      # Spring Boot entry point
 │   ├── src/main/resources/
-│   │   ├── mapper/           # MyBatis XML SQL mappings
-│   │   ├── schema.sql        # Database DDL (11 tables)
-│   │   └── application.yml   # Main configuration
-│   └── src/test/             # JUnit tests (H2 in-memory)
-├── frontend/                 # Vue 3 SPA frontend
-│   ├── src/
-│   │   ├── components/       # Reusable Vue components
-│   │   ├── views/            # Page-level views
-│   │   ├── router/           # Vue Router config
-│   │   ├── stores/           # Pinia state stores
-│   │   └── api/              # Axios API clients
-│   └── vite.config.js
-├── docs/                     # Project documentation & reports
-├── PRD/                      # Product requirements documents
-├── docker-compose.yml        # Full-stack Docker deployment
+│   │   ├── mapper/                       # MyBatis XML SQL mappings
+│   │   ├── schema.sql                    # Database DDL (11 tables)
+│   │   └── application.yml               # Main configuration
+│   └── src/test/                         # JUnit 5 tests (H2 in-memory)
+├── frontend/                             # Vue 3 SPA (Vite)
+│   └── src/
+│       ├── api/                          # Axios API clients
+│       ├── assets/                       # Global styles (styles.css) & static assets
+│       ├── components/                   # Reusable Vue components (ChatPanel, ProductCard…)
+│       ├── i18n/                         # Internationalisation (en, zh locales)
+│       ├── image/                        # Bundled product / UI images
+│       ├── router/                       # Vue Router config
+│       ├── stores/                       # Pinia state stores
+│       ├── utils/                        # Frontend helper utilities
+│       ├── views/                        # Page-level views (Home, ProductDetail, TrustScore…)
+│       ├── __tests__/                    # Component unit tests (Vitest)
+│       ├── App.vue                       # Root component
+│       ├── main.js                       # App entry point (router, i18n, Element Plus, icons)
+│       └── subcategoryProducts.json      # Seed data helper
+├── docs/                                 # Project documentation & reports
+├── PRD/                                  # Product requirements documents
+├── docker-compose.yml                    # Full-stack Docker deployment
+├── CNAME                                 # Custom domain for the deployed site
+├── index.html                            # Frontend HTML entry (deployment)
+├── ppt.md                                # Slide / presentation source
+├── project_overview.md                   # High-level project overview
+├── run-seed.ps1                          # Seed-data helper scripts
+├── copy-images.ps1                       # Image-copy helper script
+├── vitest.config.js                      # Frontend test configuration
 └── README.md
 ```
 
