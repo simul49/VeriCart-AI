@@ -21,7 +21,7 @@ Wednesday: Performance-test the platform against the NFR targets with ~100 concu
 
 Thursday: Run a security scan (OWASP dependency check, SQL-injection checks) and a bug bash against all 70 functional requirements.
 
-Friday: Compile the final project report, the 14-slide presentation deck and the deployment guide.
+Friday: Submit the complete four-week report to the supervisor and discuss the project outcomes, feedback and possible improvements with our tutor.
 
 Daily Progress:
 
@@ -33,7 +33,7 @@ Wednesday: Ran performance tests with a load-testing tool at ~100 concurrent use
 
 Thursday: Ran a security scan — an OWASP dependency check across the Maven and npm dependencies and SQL-injection probes. Confirmed that all database access goes through MyBatis parameter bindings (`#{...}`) rather than string concatenation, that passwords are BCrypt-hashed, that every protected route enforces JWT + role checks (`@PreAuthorize`), and that no secret is present in the repository (all keys are environment variables). Then ran a bug bash against all 70 functional requirements; the few issues found (minor validation messages and a responsive edge case) were fixed the same day.
 
-Friday: Compiled the final deliverables — the final project report, a professional 14-slide overview deck, and the deployment guide — and finalised the documentation set: `README.md`, `docs/API-Documentation.md` (68 endpoints), `docs/Database-Schema.md` (13 tables), plus two deep-dive documents added at the end, `docs/trustscore.md` (how the Trust Score is computed) and `docs/work.md` (how DeepSeek, Kimi, Hunyuan, Docker and the database work together). Rehearsed and delivered the project presentation.
+Friday: Submitted the complete four-week report (Weeks 1–4) to our supervisor and met with our tutor, Mr. Long Jiayue, to discuss the project in detail. We walked through the whole system — the explainable Trust Score, the multi-LLM gateway, the Docker deployment and the final results — received his feedback on the strengths of the work and his guidance on the parts to improve, and he confirmed that the project met the requirements. We also finalised the deliverables: the project report, a professional 14-slide overview deck, the deployment guide and the full documentation set (`README.md`, `docs/API-Documentation.md` with 68 endpoints, `docs/Database-Schema.md` with 13 tables, plus `docs/trustscore.md` and `docs/work.md`), and rehearsed and delivered the project presentation.
 
 Next Week's Plan:
 
