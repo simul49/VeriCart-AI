@@ -5,6 +5,9 @@ Name: [Your Name]
 Class: [Your Class]
 Student ID: [Your Student ID]
 Project Name: VeriCart AI — AI-Powered E-Commerce Trust Platform
+Team Name: Algorists
+Project Type: Team Project
+Role: Team Leader
 Supervisor: [Teacher Name]
 Date: Week 2 (July 14 – July 18, 2026)
 
